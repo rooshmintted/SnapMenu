@@ -15,6 +15,9 @@ struct Menu_CrimesApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .onAppear {
+                    print("🍽️ Menu_CrimesApp: App launched")
+                }
         }
     }
 }

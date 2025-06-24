@@ -1,0 +1,24 @@
+# OS X temporary files
+.DS_Store
+.Trashes
+
+# Xcode User settings
+xcuserdata/
+
+# Swift Package Manager
+Packages/
+Package.resolved
+.swiftpm
+
+## Obj-C/Swift specific
+*.hmap
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Pods
+Pods/
+
+.build/

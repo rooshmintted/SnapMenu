@@ -1,0 +1,288 @@
+//
+//  Models.swift
+//  Menu Crimes
+//
+//  Data models for user authentication and friend system
+//
+
+import Foundation
+import Supabase
+
+// MARK: - User Profile Model
+struct UserProfile: Codable, Identifiable, Equatable, Hashable {
+    let id: UUID
+    let username: String  // Made non-optional as primary display name
+    let avatarUrl: String?
+    let website: String?   // Exists in your database schema
+    let updatedAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case avatarUrl = "avatar_url"
+        case website
+        case updatedAt = "updated_at"
+    }
+    
+    static func == (lhs: UserProfile, rhs: UserProfile) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    // Hashable conformance - hash based on unique ID
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+// MARK: - Friend Request Model
+struct FriendRequest: Codable, Identifiable, Equatable {
+    let id: UUID
+    let senderId: UUID
+    let receiverId: UUID
+    let status: FriendRequestStatus
+    let createdAt: Date
+    let updatedAt: Date
+    
+    // Populated from joins
+    var sender: UserProfile?
+    var receiver: UserProfile?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case senderId = "sender_id"
+        case receiverId = "receiver_id"
+        case status
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+    
+    static func == (lhs: FriendRequest, rhs: FriendRequest) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - Friend Request Status
+enum FriendRequestStatus: String, Codable, CaseIterable {
+    case pending = "pending"
+    case accepted = "accepted"
+    case rejected = "rejected"
+    case blocked = "blocked"
+    
+    var displayName: String {
+        switch self {
+        case .pending: return "Pending"
+        case .accepted: return "Accepted"
+        case .rejected: return "Rejected"
+        case .blocked: return "Blocked"
+        }
+    }
+}
+
+// MARK: - Friendship Model
+struct Friendship: Codable, Identifiable, Equatable {
+    let id: UUID
+    let userId1: UUID
+    let userId2: UUID
+    let createdAt: Date
+    
+    // Populated from joins
+    var friend: UserProfile?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId1 = "user_id1"
+        case userId2 = "user_id2"
+        case createdAt = "created_at"
+    }
+    
+    static func == (lhs: Friendship, rhs: Friendship) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    // Helper to get the friend user ID
+    func getFriendId(for currentUserId: UUID) -> UUID {
+        return userId1 == currentUserId ? userId2 : userId1
+    }
+}
+
+// MARK: - Contact Model (for contact integration)
+struct ContactInfo: Identifiable, Equatable {
+    let id = UUID()
+    let firstName: String
+    let lastName: String
+    let phoneNumbers: [String]
+    let emailAddresses: [String]
+    
+    var fullName: String {
+        "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+    }
+    
+    static func == (lhs: ContactInfo, rhs: ContactInfo) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - Authentication State
+enum AuthState: Equatable {
+    case loading
+    case unauthenticated
+    case authenticated(UserProfile)
+    case error(String)
+    
+    var isAuthenticated: Bool {
+        if case .authenticated = self { return true }
+        return false
+    }
+    
+    var currentUser: UserProfile? {
+        if case .authenticated(let user) = self { return user }
+        return nil
+    }
+}
+
+// MARK: - Media Type
+enum MediaType: String, Codable, CaseIterable {
+    case photo = "photo"
+    case video = "video"
+    
+    var displayName: String {
+        switch self {
+        case .photo: return "Photo"
+        case .video: return "Video"
+        }
+    }
+    
+    var systemImageName: String {
+        switch self {
+        case .photo: return "photo"
+        case .video: return "video"
+        }
+    }
+}
+
+// MARK: - Shared Media Model (formerly SharedPhoto)
+struct SharedPhoto: Codable, Identifiable, Equatable {
+    let id: UUID
+    let senderId: UUID
+    let receiverId: UUID
+    let mediaUrl: String // URL to the uploaded media in Supabase Storage (renamed from imageUrl)
+    let mediaType: MediaType // Type of media: photo or video
+    let durationSeconds: Int? // Duration for videos (nil for photos)
+    let caption: String? // Optional message with the media
+    let isViewed: Bool // Whether the recipient has viewed the media
+    let createdAt: Date
+    let updatedAt: Date
+    
+    // Populated from joins
+    var sender: UserProfile?
+    var receiver: UserProfile?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case senderId = "sender_id"
+        case receiverId = "receiver_id"
+        case mediaUrl = "media_url"
+        case mediaType = "media_type"
+        case durationSeconds = "duration_seconds"
+        case caption
+        case isViewed = "is_viewed"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+    
+    static func == (lhs: SharedPhoto, rhs: SharedPhoto) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    // Computed properties for backward compatibility
+    var imageUrl: String { mediaUrl } // For existing photo code
+    var isPhoto: Bool { mediaType == .photo }
+    var isVideo: Bool { mediaType == .video }
+}
+
+// MARK: - Story Model
+struct Story: Codable, Identifiable, Equatable {
+    let id: UUID
+    let userId: UUID
+    let mediaUrl: String
+    let mediaType: MediaType
+    let durationSeconds: Int?
+    let caption: String?
+    let createdAt: Date
+    let expiresAt: Date
+    
+    // Populated from joins
+    var user: UserProfile?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case mediaUrl = "media_url"
+        case mediaType = "media_type"
+        case durationSeconds = "duration_seconds"
+        case caption
+        case createdAt = "created_at"
+        case expiresAt = "expires_at"
+    }
+    
+    static func == (lhs: Story, rhs: Story) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    // Computed properties
+    var isPhoto: Bool { mediaType == .photo }
+    var isVideo: Bool { mediaType == .video }
+    var isExpired: Bool { expiresAt < Date() }
+    var isActive: Bool { !isExpired }
+    
+    // Time remaining until expiry
+    var timeRemaining: TimeInterval {
+        max(0, expiresAt.timeIntervalSinceNow)
+    }
+    
+    // Formatted time remaining (e.g., "2h", "45m", "10s")
+    var timeRemainingFormatted: String {
+        let remaining = timeRemaining
+        if remaining <= 0 {
+            return "Expired"
+        }
+        
+        let hours = Int(remaining) / 3600
+        let minutes = Int(remaining) / 60 % 60
+        let seconds = Int(remaining) % 60
+        
+        if hours > 0 {
+            return "\(hours)h"
+        } else if minutes > 0 {
+            return "\(minutes)m"
+        } else {
+            return "\(seconds)s"
+        }
+    }
+    
+    
+    // Custom initializer for creating stories programmatically
+    init(id: UUID, userId: UUID, mediaUrl: String, mediaType: MediaType, 
+         durationSeconds: Int?, caption: String?, createdAt: Date, expiresAt: Date, 
+         user: UserProfile? = nil) {
+        self.id = id
+        self.userId = userId
+        self.mediaUrl = mediaUrl
+        self.mediaType = mediaType
+        self.durationSeconds = durationSeconds
+        self.caption = caption
+        self.createdAt = createdAt
+        self.expiresAt = expiresAt
+        self.user = user
+    }
+}
+
+// MARK: - Photo Share State
+enum PhotoShareState: Equatable {
+    case idle
+    case selecting
+    case uploading
+    case sending
+    case success
+    case error(String)
+}
