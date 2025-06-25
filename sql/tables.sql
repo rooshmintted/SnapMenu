@@ -154,4 +154,23 @@ create index IF not exists idx_stories_media_type on public.stories using btree 
 
 create index IF not exists idx_stories_cleanup on public.stories using btree (expires_at) TABLESPACE pg_default;
 
---There is a stories table
+CREATE TABLE public.menu_analyses (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id uuid REFERENCES public.stories(id) ON DELETE CASCADE,
+  image_url text NOT NULL,
+  analysis_data jsonb NOT NULL,
+  dishes_count integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+CREATE TABLE public.dish_analyses (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id uuid REFERENCES public.stories(id) ON DELETE CASCADE,
+  dish_name text NOT NULL,
+  margin_percentage integer NOT NULL,
+  justification text NOT NULL,
+  coordinates jsonb NOT NULL,
+  price text,
+  estimated_food_cost decimal(10,2),
+  created_at timestamp with time zone DEFAULT now()
+);
