@@ -5,356 +5,278 @@
             {
                 "dish_name": "Ham & Cheese Omelet",
                 "margin_percentage": 75,
-                "justification": "Eggs and cheese are low-cost ingredients, making this a high-margin breakfast item.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Eggs and cheese moderate cost, ham adds protein expense",
                 "price": "$14.81",
                 "estimated_food_cost": 3.7
             },
             {
                 "dish_name": "Veggie Omelet",
                 "margin_percentage": 75,
-                "justification": "Vegetables and eggs are inexpensive, resulting in a high gross margin for this vegetarian option.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Vegetables low cost, cheese moderate, eggs base cost",
                 "price": "$14.81",
                 "estimated_food_cost": 3.7
             },
             {
                 "dish_name": "Spinach Omelet",
                 "margin_percentage": 75,
-                "justification": "Similar to other omelets, low-cost ingredients keep the margin high.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Spinach and cream cheese low cost, eggs base cost",
                 "price": "$14.81",
                 "estimated_food_cost": 3.7
             },
             {
                 "dish_name": "Sears All Meat Omelet",
-                "margin_percentage": 70,
-                "justification": "Meat adds cost but is still relatively affordable, maintaining a good margin.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 65,
+                "justification": "Multiple meats increase cost, cheese and eggs moderate",
                 "price": "$15.81",
-                "estimated_food_cost": 4.74
+                "estimated_food_cost": 5.53
             },
             {
                 "dish_name": "Denver Omelet",
                 "margin_percentage": 70,
-                "justification": "Eggs, peppers, and ham are inexpensive, keeping costs low.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Ham and bell pepper moderate cost, eggs base cost",
                 "price": "$14.81",
                 "estimated_food_cost": 4.44
             },
             {
                 "dish_name": "Bay Shrimp Omelet",
-                "margin_percentage": 65,
-                "justification": "Shrimp increases ingredient cost but still allows for a decent margin.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 60,
+                "justification": "Shrimp is higher cost seafood, cream sauce adds cost",
                 "price": "$15.81",
-                "estimated_food_cost": 5.52
+                "estimated_food_cost": 6.32
             },
             {
-                "dish_name": "Joanie's Special Omelet",
+                "dish_name": "Joanie’s Special Omelet",
                 "margin_percentage": 65,
-                "justification": "Meat and cheese ingredients are moderate in cost, resulting in a moderate margin.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Smoked chicken sausage and cheese moderate protein cost",
                 "price": "$15.81",
-                "estimated_food_cost": 5.52
+                "estimated_food_cost": 5.53
             },
             {
                 "dish_name": "Heart Healthy Granola",
-                "margin_percentage": 85,
-                "justification": "Granola and yogurt are low-cost, high-margin items with minimal preparation costs.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 75,
+                "justification": "Granola and fruit low cost, yogurt adds moderate cost",
                 "price": "$7.81",
-                "estimated_food_cost": 1.17
+                "estimated_food_cost": 1.95
+            },
+            {
+                "dish_name": "Heart Healthy Granola with fresh fruit",
+                "margin_percentage": 75,
+                "justification": "Added fresh fruit low cost, granola base cost",
+                "price": "$9.81",
+                "estimated_food_cost": 2.45
+            },
+            {
+                "dish_name": "Heart Healthy Granola with fresh fruit and yogurt",
+                "margin_percentage": 70,
+                "justification": "Yogurt adds moderate cost to granola and fruit",
+                "price": "$10.81",
+                "estimated_food_cost": 3.24
             },
             {
                 "dish_name": "Cold Cereal Served with Milk",
-                "margin_percentage": 85,
-                "justification": "Cereal and milk are inexpensive, making this a high-margin breakfast choice.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Cereal and milk low cost, simple serving",
                 "price": "$5.81",
-                "estimated_food_cost": 0.87
+                "estimated_food_cost": 1.16
+            },
+            {
+                "dish_name": "Cold Cereal Served with Milk with fresh fruit",
+                "margin_percentage": 75,
+                "justification": "Added fresh fruit increases cost slightly",
+                "price": "$7.81",
+                "estimated_food_cost": 1.95
+            },
+            {
+                "dish_name": "Cold Cereal Served with Milk with fresh fruit and yogurt",
+                "margin_percentage": 70,
+                "justification": "Yogurt adds moderate cost to cereal and fruit",
+                "price": "$8.81",
+                "estimated_food_cost": 2.64
             },
             {
                 "dish_name": "Hot Oatmeal",
-                "margin_percentage": 85,
-                "justification": "Oatmeal with fruit is low-cost and simple to prepare, leading to high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Oats low cost, simple preparation",
                 "price": "$5.81",
-                "estimated_food_cost": 0.87
+                "estimated_food_cost": 1.16
+            },
+            {
+                "dish_name": "Hot Oatmeal topped with raisins",
+                "margin_percentage": 75,
+                "justification": "Raisins add slight cost to oatmeal base",
+                "price": "$7.81",
+                "estimated_food_cost": 1.95
+            },
+            {
+                "dish_name": "Hot Oatmeal with fresh strawberries or bananas",
+                "margin_percentage": 70,
+                "justification": "Fresh fruit adds moderate cost to oatmeal",
+                "price": "$9.81",
+                "estimated_food_cost": 2.94
             },
             {
                 "dish_name": "Crumb Cake",
                 "margin_percentage": 80,
-                "justification": "Cake ingredients are inexpensive, and it is a simple baked good, resulting in high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Baked goods low cost ingredients",
                 "price": "$4.81",
                 "estimated_food_cost": 0.96
             },
             {
                 "dish_name": "Banana Nut Bread",
                 "margin_percentage": 80,
-                "justification": "Bananas and bread ingredients are low-cost, making this a high-margin item.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Simple baked good with low cost ingredients",
                 "price": "$4.81",
                 "estimated_food_cost": 0.96
             },
             {
+                "dish_name": "Fresh Fruit Bowl",
+                "margin_percentage": 70,
+                "justification": "Seasonal fresh fruit moderate cost",
+                "price": "$8.81",
+                "estimated_food_cost": 2.64
+            },
+            {
+                "dish_name": "Melons",
+                "margin_percentage": 70,
+                "justification": "Fresh melon moderate cost seasonal fruit",
+                "price": "$7.81",
+                "estimated_food_cost": 2.34
+            },
+            {
+                "dish_name": "Fresh Sliced Oranges",
+                "margin_percentage": 75,
+                "justification": "Oranges low cost, simple prep",
+                "price": "$6.81",
+                "estimated_food_cost": 1.7
+            },
+            {
+                "dish_name": "Strawberries",
+                "margin_percentage": 65,
+                "justification": "Fresh strawberries higher cost seasonal fruit",
+                "price": "$7.81",
+                "estimated_food_cost": 2.73
+            },
+            {
+                "dish_name": "Broiled Grapefruit",
+                "margin_percentage": 75,
+                "justification": "Grapefruit low cost, raw sugar minimal cost",
+                "price": "$5.81",
+                "estimated_food_cost": 1.45
+            },
+            {
+                "dish_name": "Very Berry",
+                "margin_percentage": 65,
+                "justification": "Assorted berries higher cost seasonal fruit",
+                "price": "$10.81",
+                "estimated_food_cost": 3.78
+            },
+            {
                 "dish_name": "Fresh Brewed Coffee or Iced Coffee",
                 "margin_percentage": 85,
-                "justification": "Coffee beans are inexpensive per serving, leading to a high margin on beverages.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Coffee beans low cost, high markup",
                 "price": "$3.25",
                 "estimated_food_cost": 0.49
             },
             {
                 "dish_name": "Cappuccino",
-                "margin_percentage": 85,
-                "justification": "Coffee and milk costs are low, but the specialty preparation adds value, maintaining high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Espresso and milk moderate cost",
                 "price": "$4.50",
-                "estimated_food_cost": 0.68
+                "estimated_food_cost": 0.9
             },
             {
                 "dish_name": "Espresso",
                 "margin_percentage": 85,
-                "justification": "Espresso uses concentrated coffee with minimal ingredients, resulting in high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Small portion coffee, low cost",
                 "price": "$3.50",
                 "estimated_food_cost": 0.53
             },
             {
                 "dish_name": "Coffee Latte or Mocha",
-                "margin_percentage": 85,
-                "justification": "Milk and coffee are inexpensive, and the added flavorings are low-cost, ensuring high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Espresso plus milk/chocolate moderate cost",
                 "price": "$4.95",
-                "estimated_food_cost": 0.75
+                "estimated_food_cost": 0.99
             },
             {
-                "dish_name": "Double Double",
-                "margin_percentage": 85,
-                "justification": "Additional shots or double servings have minimal ingredient cost increase, maintaining high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
-                "price": "$3.00",
-                "estimated_food_cost": 0.45
+                "dish_name": "For Doubles Add",
+                "margin_percentage": 80,
+                "justification": "Extra espresso shot moderate cost",
+                "price": "$1.50",
+                "estimated_food_cost": 0.3
             },
             {
-                "dish_name": "Hot Tea or Iced Tea",
+                "dish_name": "Hot Tea or Ice Tea",
                 "margin_percentage": 85,
-                "justification": "Tea bags and water are very inexpensive, leading to high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Tea leaves low cost",
                 "price": "$3.50",
                 "estimated_food_cost": 0.53
             },
             {
                 "dish_name": "Hot Chocolate",
-                "margin_percentage": 85,
-                "justification": "Chocolate and milk are low-cost ingredients, resulting in high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Chocolate and milk moderate cost",
                 "price": "$3.95",
-                "estimated_food_cost": 0.6
+                "estimated_food_cost": 0.79
             },
             {
                 "dish_name": "Milk or Chocolate Milk",
-                "margin_percentage": 85,
-                "justification": "Milk is inexpensive, and flavorings are minimal, ensuring high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Milk low cost, chocolate adds slight cost",
                 "price": "$2.95",
-                "estimated_food_cost": 0.45
+                "estimated_food_cost": 0.59
             },
             {
-                "dish_name": "Pepsi, Diet Pepsi, Ginger Ale",
+                "dish_name": "Pepsi, Diet Pepsi, Ginger ale, Root Beer, Dr. Pepper, Sierra Mist",
                 "margin_percentage": 85,
-                "justification": "Soda costs are very low, allowing for high margins on soft drinks.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
-                "price": "$3.25",
-                "estimated_food_cost": 0.49
-            },
-            {
-                "dish_name": "Root Beer, Dr. Pepper, Sierra Mist",
-                "margin_percentage": 85,
-                "justification": "Soft drink ingredients are inexpensive, leading to high profit margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Soda syrup and carbonation low cost",
                 "price": "$3.25",
                 "estimated_food_cost": 0.49
             },
             {
                 "dish_name": "Mineral Water",
-                "margin_percentage": 85,
-                "justification": "Bottled water has minimal cost, resulting in very high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 80,
+                "justification": "Bottled water moderate cost",
                 "price": "$6.95",
-                "estimated_food_cost": 1.04
+                "estimated_food_cost": 1.39
             },
             {
                 "dish_name": "Fresh Squeezed Orange Juice",
-                "margin_percentage": 80,
-                "justification": "Fresh fruit costs are moderate, but juice yields keep margins high.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 70,
+                "justification": "Fresh oranges higher cost",
                 "price": "$7.81",
-                "estimated_food_cost": 1.56
+                "estimated_food_cost": 2.34
             },
             {
                 "dish_name": "Apple, Cranberry, Grapefruit",
-                "margin_percentage": 80,
-                "justification": "Fresh fruit ingredients are inexpensive, supporting high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 75,
+                "justification": "Juices moderate cost",
                 "price": "$4.50",
-                "estimated_food_cost": 0.9
+                "estimated_food_cost": 1.13
             },
             {
-                "dish_name": "Pineapple, Tomato, V-8 Juice Lemonade",
+                "dish_name": "Pineapple, Tomato, V-8 Juice",
+                "margin_percentage": 75,
+                "justification": "Juices moderate cost",
+                "price": "$4.50",
+                "estimated_food_cost": 1.13
+            },
+            {
+                "dish_name": "Lemonade",
                 "margin_percentage": 80,
-                "justification": "Juice ingredients are low-cost, with high profit margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "justification": "Simple syrup and lemon low cost",
                 "price": "$4.50",
                 "estimated_food_cost": 0.9
             },
             {
                 "dish_name": "Strawberry Lemonade",
-                "margin_percentage": 80,
-                "justification": "Lemonade ingredients are inexpensive, with high margins.",
-                "coordinates": {
-                    "x": 25,
-                    "y": 15,
-                    "width": 45,
-                    "height": 12
-                },
+                "margin_percentage": 75,
+                "justification": "Added strawberries increase cost",
                 "price": "$4.95",
-                "estimated_food_cost": 0.99
+                "estimated_food_cost": 1.24
             }
         ],
-        "overall_notes": "Most menu items, especially beverages and baked goods, exhibit high gross margins due to low ingredient costs and simple preparation methods."
+        "overall_notes": "Menu features high-margin beverages and breakfast items with moderate-cost proteins and fresh produce."
     },
-    "dishes_found": 27
+    "dishes_found": 39
 }

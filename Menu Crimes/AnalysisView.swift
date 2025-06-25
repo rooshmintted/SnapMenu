@@ -14,6 +14,10 @@ struct AnalysisView: View {
     
     @State private var selectedPhoto: SharedPhoto?
     @State private var showingPhotoDetail = false
+    @State private var showingMenuAnnotation = false
+    
+    // Menu annotation manager for analyzing menu margins
+    @State private var menuAnnotationManager = MenuAnnotationManager()
     
     var body: some View {
         NavigationView {
@@ -58,6 +62,19 @@ struct AnalysisView: View {
             }
             .navigationTitle("Analysis")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showingMenuAnnotation = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chart.bar.doc.horizontal")
+                            Text("Menu Analysis")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if photoShareManager.unviewedCount > 0 {
                         Text("\(photoShareManager.unviewedCount) new")
@@ -84,6 +101,9 @@ struct AnalysisView: View {
                     photoShareManager: photoShareManager
                 )
             }
+        }
+        .sheet(isPresented: $showingMenuAnnotation) {
+            MenuAnnotationView(annotationManager: menuAnnotationManager)
         }
     }
 }

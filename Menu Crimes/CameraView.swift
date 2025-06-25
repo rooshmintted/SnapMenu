@@ -14,6 +14,7 @@ struct CameraView: View {
     let friendManager: FriendManager
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
+    let menuAnalysisManager: MenuAnalysisManager
     let currentUser: UserProfile
     
     @State private var showingPreview = false
@@ -200,6 +201,7 @@ struct CameraView: View {
                     friendManager: friendManager,
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
+                    menuAnalysisManager: menuAnalysisManager,
                     currentUser: currentUser
                 )
             }
@@ -216,6 +218,7 @@ struct CameraView: View {
                     friendManager: friendManager,
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
+                    menuAnalysisManager: menuAnalysisManager,
                     currentUser: currentUser
                 )
             }
@@ -334,9 +337,11 @@ struct PhotoPreviewView: View {
     let friendManager: FriendManager
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
+    let menuAnalysisManager: MenuAnalysisManager
     let currentUser: UserProfile
     @Environment(\.dismiss) private var dismiss
     @State private var showingFriendSelection = false
+    @State private var showingAnalysisResult = false
     
     // Filter state management
     @State private var filteredImage: UIImage
@@ -344,11 +349,12 @@ struct PhotoPreviewView: View {
     @State private var showingFilters = false
     
     // Initialize with original image
-    init(image: UIImage, friendManager: FriendManager, photoShareManager: PhotoShareManager, storyManager: StoryManager, currentUser: UserProfile) {
+    init(image: UIImage, friendManager: FriendManager, photoShareManager: PhotoShareManager, storyManager: StoryManager, menuAnalysisManager: MenuAnalysisManager, currentUser: UserProfile) {
         self.image = image
         self.friendManager = friendManager
         self.photoShareManager = photoShareManager
         self.storyManager = storyManager
+        self.menuAnalysisManager = menuAnalysisManager
         self.currentUser = currentUser
         self._filteredImage = State(initialValue: image)
     }
@@ -427,6 +433,13 @@ struct PhotoPreviewView: View {
                         }
                         .fontWeight(.semibold)
                         .foregroundColor(.blue)
+                        
+                        Button("Analyze Menu") {
+                            print("📊 PhotoPreviewView: Analyze menu button tapped")
+                            showingAnalysisResult = true
+                        }
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
                     }
                 }
             }
@@ -438,6 +451,14 @@ struct PhotoPreviewView: View {
                 friendManager: friendManager,
                 photoShareManager: photoShareManager,
                 storyManager: storyManager,
+                currentUser: currentUser
+            )
+        }
+        .sheet(isPresented: $showingAnalysisResult) {
+            // Analyze the filtered image, not the original
+            MenuAnalysisResultView(
+                image: filteredImage, // Using filtered image for analysis
+                menuAnalysisManager: menuAnalysisManager,
                 currentUser: currentUser
             )
         }
@@ -672,6 +693,7 @@ struct CameraView_Previews: PreviewProvider {
             friendManager: FriendManager(authManager: AuthManager()),
             photoShareManager: PhotoShareManager(),
             storyManager: StoryManager(),
+            menuAnalysisManager: MenuAnalysisManager(),
             currentUser: UserProfile(
                 id: UUID(),
                 username: "testuser",

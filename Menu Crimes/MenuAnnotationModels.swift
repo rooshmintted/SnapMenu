@@ -1,0 +1,582 @@
+//
+//  MenuAnnotationModels.swift
+//  Menu Crimes
+//
+//  Data models for menu annotation functionality using Vision Framework for text detection
+//
+
+import Foundation
+import SwiftUI
+import Vision
+import UIKit
+
+// MARK: - Error Types
+enum MenuAnnotationError: Error, LocalizedError {
+    case visionProcessingFailed
+    case imageProcessingFailed
+    case noTextDetected
+    
+    var errorDescription: String? {
+        switch self {
+        case .visionProcessingFailed:
+            return "Failed to process image with Vision Framework"
+        case .imageProcessingFailed:
+            return "Failed to process image data"
+        case .noTextDetected:
+            return "No text was detected in the image"
+        }
+    }
+}
+
+// MARK: - Menu Analysis Models
+struct MenuAnalysisData: Codable {
+    let success: Bool
+    let analysis: MenuAnalysis
+    let dishesFound: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case success, analysis
+        case dishesFound = "dishes_found"
+    }
+}
+
+struct MenuAnalysis: Codable {
+    let dishes: [DishAnalysis]
+    let overallNotes: String
+    
+    enum CodingKeys: String, CodingKey {
+        case dishes
+        case overallNotes = "overall_notes"
+    }
+}
+
+struct DishAnalysis: Codable, Identifiable {
+    let id = UUID()
+    let dishName: String
+    let marginPercentage: Int
+    let justification: String
+    let coordinates: DishCoordinates? // Optional since we get coordinates from Vision Framework
+    let price: String
+    let estimatedFoodCost: Double
+    
+    enum CodingKeys: String, CodingKey {
+        case dishName = "dish_name"
+        case marginPercentage = "margin_percentage"
+        case justification, coordinates, price
+        case estimatedFoodCost = "estimated_food_cost"
+    }
+}
+
+struct DishCoordinates: Codable {
+    let x: Double
+    let y: Double
+    let width: Double
+    let height: Double
+}
+
+// MARK: - Detected Text Region
+struct DetectedTextRegion {
+    let text: String
+    let boundingBox: CGRect
+    let confidence: Float
+}
+
+// MARK: - Menu Annotation Manager
+@Observable
+final class MenuAnnotationManager {
+    var isLoading = false
+    var menuAnalysisData: MenuAnalysisData?
+    var annotatedImageData: Data?
+    var error: String?
+    
+    // Load menu analysis data from JSON file
+    func loadMenuAnalysis() {
+        guard let path = Bundle.main.path(forResource: "menu_items", ofType: "json"),
+              let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+            error = "Failed to load menu_items.json file"
+            return
+        }
+        
+        do {
+            menuAnalysisData = try JSONDecoder().decode(MenuAnalysisData.self, from: data)
+            print("📊 MenuAnnotationManager: Loaded \(menuAnalysisData?.dishesFound ?? 0) dishes for annotation")
+        } catch {
+            self.error = "Failed to parse menu data: \(error.localizedDescription)"
+            print("❌ MenuAnnotationManager: JSON parsing error - \(error)")
+        }
+    }
+    
+    // Generate annotated image with Vision-based text detection
+    func generateAnnotatedImage() async {
+        print("🎯 Starting annotation generation with Vision Framework...")
+        
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
+        
+        // Load the base menu image
+        guard let imagePath = Bundle.main.path(forResource: "Sears-Menu-Breakfast-1", ofType: "jpg"),
+              let baseImage = UIImage(contentsOfFile: imagePath) else {
+            await MainActor.run {
+                error = "Failed to load menu image"
+                isLoading = false
+            }
+            return
+        }
+        
+        // Debug: Log the loaded image properties for size consistency tracking
+        print("📊 MenuAnnotationManager: Loaded base image from bundle")
+        print("   Base image size: \(baseImage.size)")
+        print("   Base image scale: \(baseImage.scale)")
+        print("   Base image actual pixel size: \(baseImage.size.width * baseImage.scale) x \(baseImage.size.height * baseImage.scale)")
+        
+        guard let analysisData = menuAnalysisData else {
+            await MainActor.run {
+                error = "No menu analysis data available"
+                isLoading = false
+            }
+            return
+        }
+        
+        // Step 1: Detect text regions using Vision Framework
+        print("🔍 MenuAnnotationManager: Starting text detection using Vision Framework...")
+        
+        do {
+            let detectedTextRegions = try await detectTextRegions(in: baseImage)
+            print("🔍 MenuAnnotationManager: Detected \(detectedTextRegions.count) text regions")
+            
+            // Step 2: Match dish names from JSON with detected text
+            let matchedDishes = matchDishesWithDetectedText(
+                dishes: analysisData.analysis.dishes,
+                detectedRegions: detectedTextRegions
+            )
+            print("📊 MenuAnnotationManager: Matched \(matchedDishes.count) dishes with detected text")
+            
+            // Step 3: Create annotated image
+            let annotatedImage = createAnnotatedImage(
+                baseImage: baseImage,
+                matchedDishes: matchedDishes
+            )
+            
+            await MainActor.run {
+                annotatedImageData = annotatedImage.jpegData(compressionQuality: 0.9)
+                isLoading = false
+                print("📊 MenuAnnotationManager: Generated annotated image with \(matchedDishes.count) annotations")
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.error = "Text detection failed: \(error.localizedDescription)"
+                isLoading = false
+                print("❌ MenuAnnotationManager: Text detection error - \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Text Detection using Vision Framework
+    private func detectTextRegions(in image: UIImage) async throws -> [DetectedTextRegion] {
+        return try await withCheckedThrowingContinuation { continuation in
+            guard let cgImage = image.cgImage else {
+                continuation.resume(throwing: MenuAnnotationError.visionProcessingFailed)
+                return
+            }
+            
+            let request = VNRecognizeTextRequest { request, error in
+                if let error = error {
+                    print("❌ Vision text detection error: \(error)")
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                    print("❌ No text observations found")
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                print("🔍 Vision detected \(observations.count) text regions")
+                
+                var detectedRegions: [DetectedTextRegion] = []
+                
+                for observation in observations {
+                    guard let candidate = observation.topCandidates(1).first else { continue }
+                    
+                    let text = candidate.string
+                    let confidence = candidate.confidence
+                    
+                    // Convert Vision coordinates (normalized, bottom-left origin) to UIKit coordinates (top-left origin)
+                    let visionBounds = observation.boundingBox
+                    let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
+                    
+                    // Convert normalized coordinates to pixel coordinates and flip Y-axis
+                    let x = visionBounds.origin.x * imageSize.width
+                    let y = (1 - visionBounds.origin.y - visionBounds.height) * imageSize.height  // Flip Y-axis for UIKit
+                    let width = visionBounds.size.width * imageSize.width
+                    let height = visionBounds.size.height * imageSize.height
+                    
+                    let convertedBounds = CGRect(x: x, y: y, width: width, height: height)
+                    
+                    let region = DetectedTextRegion(
+                        text: text,
+                        boundingBox: convertedBounds,
+                        confidence: confidence
+                    )
+                    
+                    detectedRegions.append(region)
+                    
+                    print("📍 Detected: '\(text)' at Vision coords: \(visionBounds) → UIKit coords: \(convertedBounds)")
+                }
+                
+                continuation.resume(returning: detectedRegions)
+            }
+            
+            // Configure text recognition for better accuracy
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = false
+            
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            do {
+                try handler.perform([request])
+            } catch {
+                print("❌ Vision request failed: \(error)")
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+    
+    // MARK: - Dish Matching Logic
+    private func matchDishesWithDetectedText(
+        dishes: [DishAnalysis],
+        detectedRegions: [DetectedTextRegion]
+    ) -> [(dish: DishAnalysis, textRegion: DetectedTextRegion)] {
+        var matchedDishes: [(dish: DishAnalysis, textRegion: DetectedTextRegion)] = []
+        
+        for dish in dishes {
+            let dishName = dish.dishName.lowercased()
+            print("🔍 Looking for dish: '\(dishName)'")
+            
+            // Find the best matching text region for this dish
+            let bestMatch = findBestTextMatch(for: dishName, in: detectedRegions)
+            
+            if let match = bestMatch {
+                matchedDishes.append((dish: dish, textRegion: match))
+                print("✅ Matched '\(dish.dishName)' with detected text '\(match.text)' (confidence: \(match.confidence))")
+            } else {
+                print("❌ No match found for dish: '\(dish.dishName)'")
+            }
+        }
+        
+        return matchedDishes
+    }
+    
+    // Find the best text match for a dish name
+    private func findBestTextMatch(for dishName: String, in detectedRegions: [DetectedTextRegion]) -> DetectedTextRegion? {
+        var bestMatch: DetectedTextRegion?
+        var bestScore: Double = 0.0
+        
+        for region in detectedRegions {
+            let detectedText = region.text.lowercased()
+            
+            // Calculate similarity score using multiple strategies
+            let score = calculateTextSimilarity(dishName: dishName, detectedText: detectedText)
+            
+            // Only consider matches above a minimum threshold
+            if score > 0.6 && score > bestScore {
+                bestScore = score
+                bestMatch = region
+                print("🎯 Better match for '\(dishName)': '\(detectedText)' (score: \(score))")
+            }
+        }
+        
+        return bestMatch
+    }
+    
+    // Calculate text similarity using multiple strategies
+    private func calculateTextSimilarity(dishName: String, detectedText: String) -> Double {
+        let dishWords = dishName.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        let detectedWords = detectedText.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        
+        // Strategy 1: Exact match
+        if dishName == detectedText {
+            return 1.0
+        }
+        
+        // Strategy 2: Substring match
+        if detectedText.contains(dishName) || dishName.contains(detectedText) {
+            return 0.9
+        }
+        
+        // Strategy 3: Word matching
+        var matchedWords = 0
+        for dishWord in dishWords {
+            if dishWord.count >= 3 { // Only consider meaningful words
+                for detectedWord in detectedWords {
+                    if detectedWord.contains(dishWord) || dishWord.contains(detectedWord) {
+                        matchedWords += 1
+                        break
+                    }
+                }
+            }
+        }
+        
+        if dishWords.count > 0 {
+            let wordMatchScore = Double(matchedWords) / Double(dishWords.count)
+            if wordMatchScore > 0.5 {
+                return 0.7 + (wordMatchScore * 0.2) // 0.7 to 0.9 range
+            }
+        }
+        
+        // Strategy 4: Fuzzy matching (simplified Levenshtein-like approach)
+        let commonCharacters = Set(dishName).intersection(Set(detectedText)).count
+        let totalCharacters = Set(dishName).union(Set(detectedText)).count
+        let characterSimilarity = totalCharacters > 0 ? Double(commonCharacters) / Double(totalCharacters) : 0.0
+        
+        if characterSimilarity > 0.6 {
+            return characterSimilarity * 0.6 // 0.36 to 0.6 range
+        }
+        
+        return 0.0
+    }
+    
+    // MARK: - Image Annotation
+    private func createAnnotatedImage(
+        baseImage: UIImage,
+        matchedDishes: [(dish: DishAnalysis, textRegion: DetectedTextRegion)]
+    ) -> UIImage {
+        print("📊 MenuAnnotationManager: Creating annotated image")
+        print("   Input base image size: \(baseImage.size)")
+        print("   Input base image scale: \(baseImage.scale)")
+        
+        let renderer = UIGraphicsImageRenderer(size: baseImage.size)
+        
+        return renderer.image { context in
+            // Draw the base image
+            baseImage.draw(at: .zero)
+            
+            // Add annotations for each matched dish
+            for (dish, textRegion) in matchedDishes {
+                drawVisionBasedAnnotation(
+                    for: dish,
+                    at: textRegion,
+                    on: context,
+                    imageSize: baseImage.size
+                )
+            }
+        }
+    }
+    
+    // Draw annotation based on Vision-detected text location
+    private func drawVisionBasedAnnotation(
+        for dish: DishAnalysis,
+        at textRegion: DetectedTextRegion,
+        on context: UIGraphicsImageRendererContext,
+        imageSize: CGSize
+    ) {
+        let cgContext = context.cgContext
+        
+        // Get the detected text bounding box
+        let textRect = textRegion.boundingBox
+        
+        // Draw a colored bounding box around the detected dish title
+        let borderColor = getMarginColor(for: dish.marginPercentage)
+        let textColor = getTextColor(for: dish.marginPercentage)
+        cgContext.setStrokeColor(borderColor.cgColor)
+        cgContext.setLineWidth(3.0) // Thick border for visibility
+        
+        // Add some padding around the text
+        let paddedRect = textRect.insetBy(dx: -2, dy: -2)
+        cgContext.stroke(paddedRect)
+        
+        // Create much bigger percentage badge to the right of bounding box
+        let marginText = "\(dish.marginPercentage)%"
+        let categoryText = getMarginCategory(for: dish.marginPercentage)
+        
+        // Much larger font for the percentage badge
+        let percentageFont = UIFont.boldSystemFont(ofSize: 24) // Much bigger
+        let categoryFont = UIFont.systemFont(ofSize: 12)
+        
+        let percentageAttributes: [NSAttributedString.Key: Any] = [
+            .font: percentageFont,
+            .foregroundColor: textColor
+        ]
+        
+        let categoryAttributes: [NSAttributedString.Key: Any] = [
+            .font: categoryFont,
+            .foregroundColor: textColor
+        ]
+        
+        // Calculate badge size
+        let percentageSize = marginText.size(withAttributes: percentageAttributes)
+        let categorySize = categoryText.size(withAttributes: categoryAttributes)
+        
+        let badgeWidth = max(percentageSize.width, categorySize.width) + 16
+        let badgeHeight = percentageSize.height + categorySize.height + 12
+        
+        // Position badge to the right of the bounding box with some spacing
+        let badgeX = textRect.maxX + 10
+        let badgeY = textRect.midY - (badgeHeight / 2)
+        
+        let badgeRect = CGRect(
+            x: badgeX,
+            y: badgeY,
+            width: badgeWidth,
+            height: badgeHeight
+        )
+        
+        // Draw badge background with rounded corners
+        cgContext.setFillColor(borderColor.cgColor)
+        let roundedBadge = UIBezierPath(roundedRect: badgeRect, cornerRadius: 8)
+        cgContext.addPath(roundedBadge.cgPath)
+        cgContext.fillPath()
+        
+        // Draw white border around badge
+        cgContext.setStrokeColor(UIColor.white.cgColor)
+        cgContext.setLineWidth(2.0)
+        cgContext.addPath(roundedBadge.cgPath)
+        cgContext.strokePath()
+        
+        // Draw percentage text (centered in badge)
+        let percentageRect = CGRect(
+            x: badgeRect.minX + 8,
+            y: badgeRect.minY + 6,
+            width: badgeRect.width - 16,
+            height: percentageSize.height
+        )
+        
+        // Draw category text below percentage
+        let categoryRect = CGRect(
+            x: badgeRect.minX + 8,
+            y: percentageRect.maxY + 2,
+            width: badgeRect.width - 16,
+            height: categorySize.height
+        )
+        
+        // Center-align text
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        
+        var centeredPercentageAttributes = percentageAttributes
+        centeredPercentageAttributes[.paragraphStyle] = paragraphStyle
+        
+        var centeredCategoryAttributes = categoryAttributes
+        centeredCategoryAttributes[.paragraphStyle] = paragraphStyle
+        
+        marginText.draw(in: percentageRect, withAttributes: centeredPercentageAttributes)
+        categoryText.draw(in: categoryRect, withAttributes: centeredCategoryAttributes)
+        
+        print("📊 Drew bounding box for '\(dish.dishName)' (\(dish.marginPercentage)% - \(categoryText)) with large badge to the right")
+        print("   Detected text: '\(textRegion.text)' at bounds: \(textRect)")
+        print("   Badge positioned at: \(badgeRect)")
+        print("   Image size: \(imageSize)")
+    }
+    
+    // MARK: - Color Coding Functions
+    
+    // Get margin color based on percentage ranges
+    private func getMarginColor(for percentage: Int) -> UIColor {
+        switch percentage {
+        case 90...:
+            return UIColor(red: 0.5, green: 0.0, blue: 0.0, alpha: 1.0) // Dark Red
+        case 80...89:
+            return UIColor.systemRed // Red
+        case 70...79:
+            return UIColor.systemOrange // Orange
+        case 60...69:
+            return UIColor.systemYellow // Yellow
+        case 50...59:
+            return UIColor(red: 0.6, green: 0.8, blue: 0.4, alpha: 1.0) // Light Green
+        default: // <50%
+            return UIColor.systemGreen // Bright Green
+        }
+    }
+    
+    // Get text color for proper contrast based on percentage
+    private func getTextColor(for percentage: Int) -> UIColor {
+        switch percentage {
+        case 90...:
+            return UIColor.white // Dark Red background
+        case 80...89:
+            return UIColor.white // Red background
+        case 70...79:
+            return UIColor.white // Orange background
+        case 60...69:
+            return UIColor.black // Yellow background
+        case 50...59:
+            return UIColor.black // Light Green background
+        default: // <50%
+            return UIColor.white // Bright Green background
+        }
+    }
+    
+    // Get margin category description
+    private func getMarginCategory(for percentage: Int) -> String {
+        switch percentage {
+        case 90...:
+            return "Very High"
+        case 80...89:
+            return "High"
+        case 70...79:
+            return "Moderate"
+        case 60...69:
+            return "Reasonable"
+        case 50...59:
+            return "Low"
+        default: // <50%
+            return "Very Low"
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    // Helper function to wrap text
+    private func wrapText(_ text: String, maxWidth: CGFloat) -> String {
+        let words = text.split(separator: " ")
+        var lines: [String] = []
+        var currentLine = ""
+        
+        for word in words {
+            let testLine = currentLine.isEmpty ? String(word) : currentLine + " " + String(word)
+            if testLine.count > 40 { // Approximate character limit per line
+                if !currentLine.isEmpty {
+                    lines.append(currentLine)
+                    currentLine = String(word)
+                } else {
+                    lines.append(String(word))
+                }
+            } else {
+                currentLine = testLine
+            }
+        }
+        
+        if !currentLine.isEmpty {
+            lines.append(currentLine)
+        }
+        
+        return lines.joined(separator: "\n")
+    }
+    
+    // Helper function to calculate multi-line text size
+    private func calculateTextSize(text: String, attributes: [NSAttributedString.Key: Any], maxWidth: CGFloat) -> CGSize {
+        let attributedString = NSAttributedString(string: text, attributes: attributes)
+        let rect = attributedString.boundingRect(
+            with: CGSize(width: maxWidth, height: CGFloat.greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            context: nil
+        )
+        return rect.size
+    }
+    
+    // Helper function to draw wrapped text
+    private func drawWrappedText(text: String, in rect: CGRect, attributes: [NSAttributedString.Key: Any]) {
+        let attributedString = NSAttributedString(string: text, attributes: attributes)
+        attributedString.draw(in: rect)
+    }
+    
+    // Reset annotation state
+    func resetAnnotation() {
+        annotatedImageData = nil
+        error = nil
+        print("📊 MenuAnnotationManager: Reset annotation state")
+    }
+}
