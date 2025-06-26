@@ -430,54 +430,36 @@ final class MenuAnnotationManager {
     // Get margin color based on percentage ranges
     private func getMarginColor(for percentage: Int) -> UIColor {
         switch percentage {
-        case 90...:
-            return UIColor(red: 0.5, green: 0.0, blue: 0.0, alpha: 1.0) // Dark Red
-        case 80...89:
-            return UIColor.systemRed // Red
-        case 70...79:
-            return UIColor.systemOrange // Orange
-        case 60...69:
-            return UIColor.systemYellow // Yellow
-        case 50...59:
-            return UIColor(red: 0.6, green: 0.8, blue: 0.4, alpha: 1.0) // Light Green
-        default: // <50%
-            return UIColor.systemGreen // Bright Green
+        case 75...:
+            return UIColor.systemRed // High margins are bad
+        case 65...74:
+            return UIColor.systemOrange // Medium margins
+        default: // <65%
+            return UIColor.systemGreen // Low margins are good
         }
     }
     
     // Get text color for proper contrast based on percentage
     private func getTextColor(for percentage: Int) -> UIColor {
         switch percentage {
-        case 90...:
-            return UIColor.white // Dark Red background
-        case 80...89:
+        case 75...:
             return UIColor.white // Red background
-        case 70...79:
+        case 65...74:
             return UIColor.white // Orange background
-        case 60...69:
-            return UIColor.black // Yellow background
-        case 50...59:
-            return UIColor.black // Light Green background
-        default: // <50%
-            return UIColor.white // Bright Green background
+        default: // <65%
+            return UIColor.white // Green background
         }
     }
     
     // Get margin category description
     private func getMarginCategory(for percentage: Int) -> String {
         switch percentage {
-        case 90...:
-            return "Very High"
-        case 80...89:
-            return "High"
-        case 70...79:
-            return "Moderate"
-        case 60...69:
-            return "Reasonable"
-        case 50...59:
-            return "Low"
-        default: // <50%
-            return "Very Low"
+        case 75...:
+            return "Very High"  // Red - bad margins
+        case 65...74:
+            return "High"       // Orange - medium margins  
+        default: // <65%
+            return "Good"       // Green - good margins
         }
     }
     

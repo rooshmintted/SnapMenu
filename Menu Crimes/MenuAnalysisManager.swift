@@ -15,6 +15,7 @@ final class MenuAnalysisManager {
     private let supabaseClient = supabase
     
     var analysisState: MenuAnalysisState = .idle
+    var uploadedImageUrl: String? // Store the uploaded image URL for reuse
     
     init() {
         print("🔍 MenuAnalysisManager: Initialized")
@@ -23,12 +24,11 @@ final class MenuAnalysisManager {
     /// Analyze a menu photo using the Supabase edge function
     func analyzeMenu(image: UIImage, currentUser: UserProfile) async {
         print("🔍 MenuAnalysisManager: Starting menu analysis...")
-        analysisState = .uploading
         
         do {
-            // First upload the image to get a public URL
+            analysisState = .uploading
             let imageUrl = try await uploadImageForAnalysis(image: image, currentUser: currentUser)
-            print("🔍 MenuAnalysisManager: Image uploaded successfully to \(imageUrl)")
+            uploadedImageUrl = imageUrl // Store for reuse
             
             analysisState = .analyzing
             

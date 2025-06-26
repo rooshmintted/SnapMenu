@@ -10,13 +10,10 @@ import SwiftUI
 struct MenuAnalysisResultView: View {
     let image: UIImage
     let menuAnalysisManager: MenuAnalysisManager
-    let pollManager: PollManager
-    let friendManager: FriendManager
     let currentUser: UserProfile
     let onDone: () -> Void
     
     @Environment(\.dismiss) private var dismiss
-    @State private var showingPollCreation = false
     
     var body: some View {
         NavigationView {
@@ -109,26 +106,8 @@ struct MenuAnalysisResultView: View {
                                             }
                                         }
                                     }
-                                    
-                                    // Create Poll button
-                                    Button("Create Poll") {
-                                        showingPollCreation = true
-                                    }
-                                    .padding()
-                                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
-                                    .foregroundColor(.white)
-                                    .fontWeight(.semibold)
                                 }
                                 .padding()
-                            }
-                            .sheet(isPresented: $showingPollCreation) {
-                                PollCreationView(
-                                    analysisResponse: response,
-                                    menuImage: image,
-                                    pollManager: pollManager,
-                                    friendManager: friendManager,
-                                    currentUser: currentUser
-                                )
                             }
                             
                         case .error(let errorMessage):
@@ -243,12 +222,12 @@ struct DishAnalysisCard: View {
     
     /// Get color for margin visualization
     private func marginColor(for margin: Double) -> Color {
-        if margin >= 70 {
-            return .green
-        } else if margin >= 50 {
-            return .orange
+        if margin >= 75 {
+            return .red      // High margins are bad
+        } else if margin >= 65 {
+            return .orange   // Medium margins
         } else {
-            return .red
+            return .green    // Low margins are good
         }
     }
 }
@@ -257,8 +236,6 @@ struct DishAnalysisCard: View {
     MenuAnalysisResultView(
         image: UIImage(systemName: "photo") ?? UIImage(),
         menuAnalysisManager: MenuAnalysisManager(),
-        pollManager: PollManager(),
-        friendManager: FriendManager(authManager: AuthManager()),
         currentUser: UserProfile(
             id: UUID(),
             username: "testuser",

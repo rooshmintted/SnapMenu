@@ -19,18 +19,8 @@ struct FriendsTabView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Friend Requests Section
-                if !friendManager.friendRequests.isEmpty {
-                    FriendRequestsSection(friendManager: friendManager)
-                        .padding(.bottom, 10)
-                }
-                
-                // Friends List
-                if friendManager.friends.isEmpty && !friendManager.isLoading {
-                    EmptyFriendsView(onAddFriends: { showingAddFriends = true })
-                } else {
-                    FriendsListView(friends: friendManager.friends, storyManager: storyManager)
-                }
+                // Friends Content
+                friendsTabContent
                 
                 Spacer()
             }
@@ -53,12 +43,10 @@ struct FriendsTabView: View {
                     }
                 }
             }
-            .onAppear {
+            .task {
                 print("👥 FriendsTabView: Loading friends and requests")
-                Task {
-                    await friendManager.loadFriends()
-                    await friendManager.loadFriendRequests()
-                }
+                await friendManager.loadFriends()
+                await friendManager.loadFriendRequests()
             }
             .refreshable {
                 print("👥 FriendsTabView: Refreshing friends data")
@@ -71,6 +59,23 @@ struct FriendsTabView: View {
         }
         .sheet(isPresented: $showingProfile) {
             ProfileView(authManager: authManager)
+        }
+    }
+    
+    // MARK: - Friends Tab Content
+    @ViewBuilder
+    private var friendsTabContent: some View {
+        // Friend Requests Section
+        if !friendManager.friendRequests.isEmpty {
+            FriendRequestsSection(friendManager: friendManager)
+                .padding(.bottom, 10)
+        }
+        
+        // Friends List
+        if friendManager.friends.isEmpty && !friendManager.isLoading {
+            EmptyFriendsView(onAddFriends: { showingAddFriends = true })
+        } else {
+            FriendsListView(friends: friendManager.friends, storyManager: storyManager)
         }
     }
 }

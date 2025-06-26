@@ -10,6 +10,7 @@ import AVFoundation
 
 struct CameraPreviewView: UIViewRepresentable {
     let captureSession: AVCaptureSession
+    let cameraManager: CameraManager
     
     func makeUIView(context: Context) -> CameraPreviewUIView {
         print("🎥 CameraPreviewView: Creating camera preview UI view")
@@ -17,6 +18,7 @@ struct CameraPreviewView: UIViewRepresentable {
         let view = CameraPreviewUIView()
         view.backgroundColor = .black
         view.setupPreviewLayer(with: captureSession)
+        view.cameraManager = cameraManager
         
         return view
     }
@@ -27,12 +29,16 @@ struct CameraPreviewView: UIViewRepresentable {
         if uiView.previewLayer.session != captureSession {
             uiView.previewLayer.session = captureSession
         }
+        
+        // Update camera manager reference
+        uiView.cameraManager = cameraManager
     }
 }
 
 // MARK: - Custom UIView for Camera Preview
 class CameraPreviewUIView: UIView {
     var previewLayer: AVCaptureVideoPreviewLayer!
+    weak var cameraManager: CameraManager?
     
     func setupPreviewLayer(with session: AVCaptureSession) {
         print("🎥 CameraPreviewUIView: Setting up preview layer")
@@ -54,5 +60,9 @@ class CameraPreviewUIView: UIView {
             previewLayer.frame = bounds
             print("🎥 CameraPreviewUIView: Updated preview layer frame to \(bounds)")
         }
+        
+        // Update camera manager with current bounds for accurate cropping
+        cameraManager?.previewBounds = bounds
+        print("🎯 CameraPreviewUIView: Updated camera manager preview bounds to \(bounds)")
     }
 }

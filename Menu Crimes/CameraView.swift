@@ -15,7 +15,6 @@ struct CameraView: View {
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
     let menuAnalysisManager: MenuAnalysisManager
-    let pollManager: PollManager
     let currentUser: UserProfile
     
     @State private var showingPreview = false
@@ -30,7 +29,7 @@ struct CameraView: View {
             
             if cameraManager.permissionGranted {
                 // Camera preview
-                CameraPreviewView(captureSession: cameraManager.captureSession)
+                CameraPreviewView(captureSession: cameraManager.captureSession, cameraManager: cameraManager)
                     .ignoresSafeArea()
                     .onAppear {
                         print("🎥 CameraView: Camera preview appeared")
@@ -203,7 +202,6 @@ struct CameraView: View {
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
                     menuAnalysisManager: menuAnalysisManager,
-                    pollManager: pollManager,
                     currentUser: currentUser
                 )
             }
@@ -221,7 +219,6 @@ struct CameraView: View {
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
                     menuAnalysisManager: menuAnalysisManager,
-                    pollManager: pollManager,
                     currentUser: currentUser
                 )
             }
@@ -341,7 +338,6 @@ struct PhotoPreviewView: View {
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
     let menuAnalysisManager: MenuAnalysisManager
-    let pollManager: PollManager
     let currentUser: UserProfile
     @Environment(\.dismiss) private var dismiss
     @State private var showingFriendSelection = false
@@ -353,13 +349,12 @@ struct PhotoPreviewView: View {
     @State private var showingFilters = false
     
     // Initialize with original image
-    init(image: UIImage, friendManager: FriendManager, photoShareManager: PhotoShareManager, storyManager: StoryManager, menuAnalysisManager: MenuAnalysisManager, pollManager: PollManager, currentUser: UserProfile) {
+    init(image: UIImage, friendManager: FriendManager, photoShareManager: PhotoShareManager, storyManager: StoryManager, menuAnalysisManager: MenuAnalysisManager, currentUser: UserProfile) {
         self.image = image
         self.friendManager = friendManager
         self.photoShareManager = photoShareManager
         self.storyManager = storyManager
         self.menuAnalysisManager = menuAnalysisManager
-        self.pollManager = pollManager
         self.currentUser = currentUser
         self._filteredImage = State(initialValue: image)
     }
@@ -464,8 +459,6 @@ struct PhotoPreviewView: View {
             MenuAnalysisResultView(
                 image: filteredImage, // Using filtered image for analysis
                 menuAnalysisManager: menuAnalysisManager,
-                pollManager: pollManager,
-                friendManager: friendManager,
                 currentUser: currentUser,
                 onDone: {
                     showingAnalysisResult = false
@@ -704,7 +697,6 @@ struct CameraView_Previews: PreviewProvider {
             photoShareManager: PhotoShareManager(),
             storyManager: StoryManager(),
             menuAnalysisManager: MenuAnalysisManager(),
-            pollManager: PollManager(),
             currentUser: UserProfile(
                 id: UUID(),
                 username: "testuser",

@@ -22,6 +22,9 @@ final class CameraManager: NSObject {
     var capturedImage: UIImage?
     var capturedVideoURL: URL?
     
+    // Preview bounds for accurate cropping
+    var previewBounds: CGRect = .zero
+    
     // MARK: - Private Properties
     private var frontCamera: AVCaptureDevice?
     private var backCamera: AVCaptureDevice?
@@ -205,15 +208,81 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
         }
         
         guard let imageData = photo.fileDataRepresentation(),
-              let image = UIImage(data: imageData) else {
+              let originalImage = UIImage(data: imageData) else {
             print("❌ CameraManager: Failed to process photo data")
             return
         }
         
-        print("✅ CameraManager: Photo captured successfully")
+        // Crop the image to match the preview aspect ratio
+        let croppedImage = cropImageToPreviewAspectRatio(originalImage)
+        
+        print("✅ CameraManager: Photo captured and cropped successfully")
         DispatchQueue.main.async {
-            self.capturedImage = image
+            self.capturedImage = croppedImage
         }
+    }
+    
+    // MARK: - Image Processing
+    private func cropImageToPreviewAspectRatio(_ image: UIImage) -> UIImage {
+        print("🎯 CameraManager: Cropping image to match preview aspect ratio")
+        
+        // Use actual preview bounds if available, otherwise fall back to screen dimensions
+        let referenceSize: CGSize
+        if previewBounds != .zero {
+            referenceSize = previewBounds.size
+            print("🎯 CameraManager: Using preview bounds: \(previewBounds)")
+        } else {
+            referenceSize = UIScreen.main.bounds.size
+            print("🎯 CameraManager: Using screen bounds as fallback")
+        }
+        
+        let referenceAspectRatio = referenceSize.width / referenceSize.height
+        
+        let imageSize = image.size
+        let imageAspectRatio = imageSize.width / imageSize.height
+        
+        print("🎯 CameraManager: Reference aspect ratio: \(referenceAspectRatio), Image aspect ratio: \(imageAspectRatio)")
+        
+        // If image aspect ratio matches reference, no cropping needed
+        if abs(imageAspectRatio - referenceAspectRatio) < 0.01 {
+            print("🎯 CameraManager: Aspect ratios match, no cropping needed")
+            return image
+        }
+        
+        // Calculate crop dimensions to match reference aspect ratio
+        var cropWidth: CGFloat
+        var cropHeight: CGFloat
+        var cropX: CGFloat = 0
+        var cropY: CGFloat = 0
+        
+        if imageAspectRatio > referenceAspectRatio {
+            // Image is wider than reference ratio - crop width
+            cropHeight = imageSize.height
+            cropWidth = cropHeight * referenceAspectRatio
+            cropX = (imageSize.width - cropWidth) / 2
+        } else {
+            // Image is taller than reference ratio - crop height
+            cropWidth = imageSize.width
+            cropHeight = cropWidth / referenceAspectRatio
+            cropY = (imageSize.height - cropHeight) / 2
+        }
+        
+        print("🎯 CameraManager: Cropping to width: \(cropWidth), height: \(cropHeight), x: \(cropX), y: \(cropY)")
+        
+        // Create crop rect
+        let cropRect = CGRect(x: cropX, y: cropY, width: cropWidth, height: cropHeight)
+        
+        // Perform the crop
+        guard let cgImage = image.cgImage,
+              let croppedCGImage = cgImage.cropping(to: cropRect) else {
+            print("❌ CameraManager: Failed to crop image, returning original")
+            return image
+        }
+        
+        let croppedImage = UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation)
+        print("✅ CameraManager: Image cropped successfully")
+        
+        return croppedImage
     }
 }
 
