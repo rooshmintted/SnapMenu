@@ -28,52 +28,6 @@ enum MenuAnnotationError: Error, LocalizedError {
     }
 }
 
-// MARK: - Menu Analysis Models
-struct MenuAnalysisData: Codable {
-    let success: Bool
-    let analysis: MenuAnalysis
-    let dishesFound: Int
-    
-    enum CodingKeys: String, CodingKey {
-        case success, analysis
-        case dishesFound = "dishes_found"
-    }
-}
-
-struct MenuAnalysis: Codable {
-    let dishes: [DishAnalysis]
-    let overallNotes: String
-    
-    enum CodingKeys: String, CodingKey {
-        case dishes
-        case overallNotes = "overall_notes"
-    }
-}
-
-struct DishAnalysis: Codable, Identifiable {
-    let id = UUID()
-    let dishName: String
-    let marginPercentage: Int
-    let justification: String
-    let coordinates: DishCoordinates? // Optional since we get coordinates from Vision Framework
-    let price: String
-    let estimatedFoodCost: Double
-    
-    enum CodingKeys: String, CodingKey {
-        case dishName = "dish_name"
-        case marginPercentage = "margin_percentage"
-        case justification, coordinates, price
-        case estimatedFoodCost = "estimated_food_cost"
-    }
-}
-
-struct DishCoordinates: Codable {
-    let x: Double
-    let y: Double
-    let width: Double
-    let height: Double
-}
-
 // MARK: - Detected Text Region
 struct DetectedTextRegion {
     let text: String
@@ -85,9 +39,9 @@ struct DetectedTextRegion {
 @Observable
 final class MenuAnnotationManager {
     var isLoading = false
-    var menuAnalysisData: MenuAnalysisData?
-    var annotatedImageData: Data?
     var error: String?
+    var menuAnalysisData: MenuAnalysisResponse?
+    var annotatedImageData: Data?
     
     // Load menu analysis data from JSON file
     func loadMenuAnalysis() {
@@ -98,8 +52,8 @@ final class MenuAnnotationManager {
         }
         
         do {
-            menuAnalysisData = try JSONDecoder().decode(MenuAnalysisData.self, from: data)
-            print("📊 MenuAnnotationManager: Loaded \(menuAnalysisData?.dishesFound ?? 0) dishes for annotation")
+            menuAnalysisData = try JSONDecoder().decode(MenuAnalysisResponse.self, from: data)
+            print("📊 MenuAnnotationManager: Loaded \(menuAnalysisData?.dishes_found ?? 0) dishes for annotation")
         } catch {
             self.error = "Failed to parse menu data: \(error.localizedDescription)"
             print("❌ MenuAnnotationManager: JSON parsing error - \(error)")

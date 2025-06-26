@@ -17,6 +17,7 @@ struct ContentView: View {
     let galleryManager = PhotoGalleryManager()
     let photoShareManager = PhotoShareManager()
     let menuAnalysisManager = MenuAnalysisManager()
+    let pollManager = PollManager()
     
     // Lazy initialization of managers that depend on auth manager
     private var friendManager: FriendManager {
@@ -53,7 +54,8 @@ struct ContentView: View {
                     friendManager: friendManager,
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
-                    menuAnalysisManager: menuAnalysisManager
+                    menuAnalysisManager: menuAnalysisManager,
+                    pollManager: pollManager
                 )
             }
         }
@@ -75,6 +77,7 @@ struct AuthenticatedMainView: View {
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
     let menuAnalysisManager: MenuAnalysisManager
+    let pollManager: PollManager
     
     @State private var selectedTab = 0 // 0: Camera, 1: Analysis, 2: Friends
     
@@ -89,6 +92,7 @@ struct AuthenticatedMainView: View {
                     photoShareManager: photoShareManager,
                     storyManager: storyManager,
                     menuAnalysisManager: menuAnalysisManager,
+                    pollManager: pollManager,
                     currentUser: currentUser
                 )
                     .tabItem {

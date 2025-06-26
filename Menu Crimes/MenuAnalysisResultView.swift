@@ -10,9 +10,13 @@ import SwiftUI
 struct MenuAnalysisResultView: View {
     let image: UIImage
     let menuAnalysisManager: MenuAnalysisManager
+    let pollManager: PollManager
+    let friendManager: FriendManager
     let currentUser: UserProfile
+    let onDone: () -> Void
     
     @Environment(\.dismiss) private var dismiss
+    @State private var showingPollCreation = false
     
     var body: some View {
         NavigationView {
@@ -105,8 +109,26 @@ struct MenuAnalysisResultView: View {
                                             }
                                         }
                                     }
+                                    
+                                    // Create Poll button
+                                    Button("Create Poll") {
+                                        showingPollCreation = true
+                                    }
+                                    .padding()
+                                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
+                                    .foregroundColor(.white)
+                                    .fontWeight(.semibold)
                                 }
                                 .padding()
+                            }
+                            .sheet(isPresented: $showingPollCreation) {
+                                PollCreationView(
+                                    analysisResponse: response,
+                                    menuImage: image,
+                                    pollManager: pollManager,
+                                    friendManager: friendManager,
+                                    currentUser: currentUser
+                                )
                             }
                             
                         case .error(let errorMessage):
@@ -148,7 +170,7 @@ struct MenuAnalysisResultView: View {
                     Button("Done") {
                         print("📊 MenuAnalysisResultView: Done button tapped")
                         menuAnalysisManager.resetAnalysisState()
-                        dismiss()
+                        onDone()
                     }
                 }
             }
@@ -235,12 +257,15 @@ struct DishAnalysisCard: View {
     MenuAnalysisResultView(
         image: UIImage(systemName: "photo") ?? UIImage(),
         menuAnalysisManager: MenuAnalysisManager(),
+        pollManager: PollManager(),
+        friendManager: FriendManager(authManager: AuthManager()),
         currentUser: UserProfile(
             id: UUID(),
             username: "testuser",
             avatarUrl: nil,
             website: nil,
             updatedAt: Date()
-        )
+        ),
+        onDone: {}
     )
 }

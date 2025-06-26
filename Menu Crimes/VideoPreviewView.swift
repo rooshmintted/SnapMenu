@@ -14,6 +14,7 @@ struct VideoPreviewView: View {
     let photoShareManager: PhotoShareManager
     let storyManager: StoryManager
     let menuAnalysisManager: MenuAnalysisManager
+    let pollManager: PollManager
     let currentUser: UserProfile
     @Environment(\.dismiss) private var dismiss
     @State private var showingFriendSelection = false
@@ -120,6 +121,7 @@ struct VideoPreviewView: View {
         photoShareManager: PhotoShareManager(),
         storyManager: StoryManager(),
         menuAnalysisManager: MenuAnalysisManager(),
+        pollManager: PollManager(),
         currentUser: UserProfile(
             id: UUID(),
             username: "testuser",
