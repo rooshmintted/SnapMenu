@@ -42,6 +42,31 @@ final class MenuAnnotationManager {
     var error: String?
     var menuAnalysisData: MenuAnalysisResponse?
     var annotatedImageData: Data?
+    var originalImage: UIImage? // Store the provided image for annotation
+    
+    // MARK: - Data Loading Methods
+    
+    /// Set analysis data and image directly from live analysis results
+    func setAnalysisData(_ response: MenuAnalysisResponse, image: UIImage) {
+        print("📊 MenuAnnotationManager: Setting live analysis data with \(response.dishes_found) dishes")
+        self.menuAnalysisData = response
+        self.originalImage = image
+        
+        // Debug: Log the provided image properties
+        print("📊 MenuAnnotationManager: Stored original image")
+        print("   Image size: \(image.size)")
+        print("   Image scale: \(image.scale)")
+        print("   Image actual pixel size: \(image.size.width * image.scale) x \(image.size.height * image.scale)")
+        
+        // Reset previous annotation state
+        annotatedImageData = nil
+        error = nil
+        
+        print("📊 MenuAnnotationManager: Ready for annotation generation with dishes:")
+        for dish in response.analysis.dishes {
+            print("   - '\(dish.dishName)' (\(dish.marginPercentage)%)")
+        }
+    }
     
     // Load menu analysis data from JSON file
     func loadMenuAnalysis() {
@@ -69,9 +94,27 @@ final class MenuAnnotationManager {
             error = nil
         }
         
-        // Load the base menu image
-        guard let imagePath = Bundle.main.path(forResource: "Sears-Menu-Breakfast-1", ofType: "jpg"),
-              let baseImage = UIImage(contentsOfFile: imagePath) else {
+        guard let analysisData = menuAnalysisData else {
+            await MainActor.run {
+                error = "No menu analysis data available"
+                isLoading = false
+            }
+            return
+        }
+        
+        // Try to load the image from the live analysis data or fall back to bundle
+        var baseImage: UIImage?
+        
+        // Use the stored original image if available, otherwise fall back to bundle
+        if let storedImage = originalImage {
+            baseImage = storedImage
+            print("📊 MenuAnnotationManager: Using stored original image")
+        } else if let imagePath = Bundle.main.path(forResource: "Sears-Menu-Breakfast-1", ofType: "jpg") {
+            baseImage = UIImage(contentsOfFile: imagePath)
+            print("📊 MenuAnnotationManager: Using fallback bundle image")
+        }
+        
+        guard let baseImage = baseImage else {
             await MainActor.run {
                 error = "Failed to load menu image"
                 isLoading = false
@@ -80,18 +123,10 @@ final class MenuAnnotationManager {
         }
         
         // Debug: Log the loaded image properties for size consistency tracking
-        print("📊 MenuAnnotationManager: Loaded base image from bundle")
+        print("📊 MenuAnnotationManager: Loaded base image")
         print("   Base image size: \(baseImage.size)")
         print("   Base image scale: \(baseImage.scale)")
         print("   Base image actual pixel size: \(baseImage.size.width * baseImage.scale) x \(baseImage.size.height * baseImage.scale)")
-        
-        guard let analysisData = menuAnalysisData else {
-            await MainActor.run {
-                error = "No menu analysis data available"
-                isLoading = false
-            }
-            return
-        }
         
         // Step 1: Detect text regions using Vision Framework
         print("🔍 MenuAnnotationManager: Starting text detection using Vision Framework...")

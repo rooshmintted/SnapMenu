@@ -17,11 +17,16 @@ final class MenuAnalysisManager {
     var analysisState: MenuAnalysisState = .idle
     var uploadedImageUrl: String? // Store the uploaded image URL for reuse
     
+    // MARK: - Menu Embedding Integration
+    var embeddingManager: MenuEmbeddingManager?
+    
     init() {
         print("🔍 MenuAnalysisManager: Initialized")
+        self.embeddingManager = MenuEmbeddingManager()
     }
     
     /// Analyze a menu photo using the Supabase edge function
+    /// Also processes the image for embedding in parallel
     func analyzeMenu(image: UIImage, currentUser: UserProfile) async {
         print("🔍 MenuAnalysisManager: Starting menu analysis...")
         
@@ -32,12 +37,23 @@ final class MenuAnalysisManager {
             
             analysisState = .analyzing
             
-            // Call the Supabase edge function
+            // Get the analysis response first
             let response = try await callAnalysisFunction(imageUrl: imageUrl)
             print("🔍 MenuAnalysisManager: Analysis completed successfully")
             print("🔍 MenuAnalysisManager: Response data: \(response)")
             
             analysisState = .completed(response)
+            
+            // Now start embedding process using the analysis response
+            // This runs after analysis completes, using structured dish data
+            Task {
+                await embeddingManager?.processMenuForEmbedding(
+                    analysisResponse: response,
+                    restaurantName: embeddingManager?.restaurantName ?? "Unknown Restaurant",
+                    currentUser: currentUser
+                )
+                print("🔍 MenuAnalysisManager: Background embedding process completed")
+            }
             
         } catch {
             print("❌ MenuAnalysisManager: Analysis failed with error: \(error)")

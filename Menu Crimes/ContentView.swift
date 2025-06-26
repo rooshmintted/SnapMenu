@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Menu Crimes
 //
-//  Main app interface with authentication and friend system integration
+//  Main app interface with authentication and menu analysis
 //
 
 import SwiftUI
@@ -11,23 +11,12 @@ import CoreData
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
-    // Authentication and social managers - using @Observable pattern
+    // Core managers - using @Observable pattern
     let authManager = AuthManager()
     let cameraManager = CameraManager()
     let galleryManager = PhotoGalleryManager()
-    let photoShareManager = PhotoShareManager()
     let menuAnalysisManager = MenuAnalysisManager()
-    
-    // Lazy initialization of managers that depend on auth manager
-    private var friendManager: FriendManager {
-        FriendManager(authManager: authManager)
-    }
-    
-    private var storyManager: StoryManager {
-        StoryManager(authManager: authManager)
-    }
-    
-    @State private var showTestView = false
+    let menuAnnotationManager = MenuAnnotationManager()
     
     var body: some View {
         Group {
@@ -35,33 +24,19 @@ struct ContentView: View {
             case .loading:
                 LoadingView()
             case .unauthenticated, .error:
-                VStack {
-                    AuthContainerView(authManager: authManager)
-                    
-                    Button("Debug Supabase") {
-                        showTestView = true
-                    }
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .padding()
-                }
+                AuthContainerView(authManager: authManager)
             case .authenticated:
                 AuthenticatedMainView(
                     authManager: authManager,
                     cameraManager: cameraManager,
                     galleryManager: galleryManager,
-                    friendManager: friendManager,
-                    photoShareManager: photoShareManager,
-                    storyManager: storyManager,
-                    menuAnalysisManager: menuAnalysisManager
+                    menuAnalysisManager: menuAnalysisManager,
+                    menuAnnotationManager: menuAnnotationManager
                 )
             }
         }
         .onAppear {
             print("ContentView: App launched, checking authentication state")
-        }
-        .sheet(isPresented: $showTestView) {
-            SupabaseTestView()
         }
     }
 }
@@ -71,12 +46,10 @@ struct AuthenticatedMainView: View {
     let authManager: AuthManager
     let cameraManager: CameraManager
     let galleryManager: PhotoGalleryManager
-    let friendManager: FriendManager
-    let photoShareManager: PhotoShareManager
-    let storyManager: StoryManager
     let menuAnalysisManager: MenuAnalysisManager
+    let menuAnnotationManager: MenuAnnotationManager
     
-    @State private var selectedTab = 0 // 0: Camera, 1: Analysis, 2: Friends
+    @State private var selectedTab = 0 // 0: Camera, 1: Search, 2: Analysis, 3: Profile
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -85,10 +58,8 @@ struct AuthenticatedMainView: View {
                 CameraView(
                     cameraManager: cameraManager, 
                     galleryManager: galleryManager,
-                    friendManager: friendManager,
-                    photoShareManager: photoShareManager,
-                    storyManager: storyManager,
                     menuAnalysisManager: menuAnalysisManager,
+                    menuAnnotationManager: menuAnnotationManager,
                     currentUser: currentUser
                 )
                     .tabItem {
@@ -97,32 +68,33 @@ struct AuthenticatedMainView: View {
                     }
                     .tag(0)
                 
-                // Analysis Tab
-                AnalysisView(
-                    photoShareManager: photoShareManager,
-                    currentUser: currentUser
-                )
+                // Search Tab - ChatGPT-style menu search
+                SearchView()
                     .tabItem {
-                        Image(systemName: selectedTab == 1 ? "chart.bar.fill" : "chart.bar")
-                        Text("Analysis")
+                        Image(systemName: selectedTab == 1 ? "magnifyingglass.circle.fill" : "magnifyingglass")
+                        Text("Search")
                     }
                     .tag(1)
                 
-                // Friends Tab (Updated)
-                FriendsTabView(
-                    authManager: authManager, 
-                    friendManager: friendManager, 
-                    storyManager: storyManager
+                // Analysis Tab - Show user's analysis history
+                AnalysisView(
+                    currentUser: currentUser
                 )
                     .tabItem {
-                        Image(systemName: selectedTab == 2 ? "person.2.fill" : "person.2")
-                        Text("Friends")
+                        Image(systemName: selectedTab == 2 ? "chart.bar.fill" : "chart.bar")
+                        Text("Analysis")
                     }
                     .tag(2)
-                    .conditionalBadge(friendManager.friendRequests.count)
+                
+                // Profile Tab
+                ProfileView(authManager: authManager)
+                    .tabItem {
+                        Image(systemName: selectedTab == 3 ? "person.fill" : "person")
+                        Text("Profile")
+                    }
+                    .tag(3)
             } else {
-                // Fallback when user is not authenticated - this shouldn't normally happen
-                // but prevents crashes during logout
+                // Fallback when user is not authenticated
                 Text("Loading...")
                     .tabItem {
                         Image(systemName: "camera")
@@ -135,17 +107,11 @@ struct AuthenticatedMainView: View {
         .tabViewStyle(.automatic)
         .onAppear {
             print("AuthenticatedMainView: User authenticated, showing main interface")
-            // Set default tab to camera for Snapchat-style experience
+            // Set default tab to camera for camera-first experience
             selectedTab = 0
             
             // Configure tab bar appearance for better visibility
             configureTabBarAppearance()
-            
-            // Load friend data
-            Task {
-                await friendManager.loadFriends()
-                await friendManager.loadFriendRequests()
-            }
         }
     }
     
@@ -176,17 +142,6 @@ struct AuthenticatedMainView: View {
     }
 }
 
-extension View {
-    @ViewBuilder
-    func conditionalBadge(_ count: Int) -> some View {
-        if count > 0 {
-            self.badge(count)
-        } else {
-            self
-        }
-    }
-}
-
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView()
 }
