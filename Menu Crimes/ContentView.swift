@@ -21,18 +21,20 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            switch authManager.authState {
-            case .loading:
-                LoadingView()
-            case .unauthenticated, .error:
-                AuthContainerView(authManager: authManager)
-            case .authenticated:
-                if !onboardingManager.hasCompletedOnboarding {
-                    // Show onboarding on first launch
-                    OnboardingView {
-                        onboardingManager.markOnboardingCompleted()
-                    }
-                } else {
+            // Check onboarding first - show onboarding before authentication if not completed
+            if !onboardingManager.hasCompletedOnboarding {
+                OnboardingView {
+                    print("🎯 ContentView: Onboarding completed, now checking authentication")
+                    onboardingManager.markOnboardingCompleted()
+                }
+            } else {
+                // Onboarding completed, now handle authentication flow
+                switch authManager.authState {
+                case .loading:
+                    LoadingView()
+                case .unauthenticated, .error:
+                    AuthContainerView(authManager: authManager)
+                case .authenticated:
                     AuthenticatedMainView(
                         authManager: authManager,
                         cameraManager: cameraManager,
@@ -46,6 +48,7 @@ struct ContentView: View {
         .onAppear {
             print("ContentView: App launched, checking authentication state")
             print("🎯 ContentView: Onboarding completed: \(onboardingManager.hasCompletedOnboarding)")
+            print("🔍 ContentView: Auth state: \(authManager.authState)")
         }
     }
 }
@@ -81,7 +84,7 @@ struct AuthenticatedMainView: View {
                 SearchView()
                     .tabItem {
                         Image(systemName: selectedTab == 1 ? "magnifyingglass.circle.fill" : "magnifyingglass")
-                        Text("Search")
+                        Text("Ask")
                     }
                     .tag(1)
                 

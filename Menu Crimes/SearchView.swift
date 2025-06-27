@@ -13,6 +13,7 @@ struct SearchView: View {
     @State private var messages: [SearchMessage] = []
     @State private var isLoading = false
     @State private var showingExamples = true
+    @State private var showingQuestionPopup = false
     
     // AI Search Manager
     @State var searchAIManager = SearchAIManager()
@@ -77,6 +78,16 @@ struct SearchView: View {
         .onAppear {
             startExampleRotation()
         }
+        .sheet(isPresented: $showingQuestionPopup) {
+            ExampleQuestionsPopupView(
+                exampleQuestions: exampleQuestions,
+                onQuestionSelected: { question in
+                    print("💬 SearchView: Selected question from popup: \(question)")
+                    searchText = question
+                    showingQuestionPopup = false
+                }
+            )
+        }
     }
     
     // MARK: - Header View
@@ -96,19 +107,25 @@ struct SearchView: View {
                 
                 Spacer()
                 
-                // Menu AI Icon
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [.orange, .red],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "brain.head.profile")
-                            .foregroundColor(.white)
-                            .font(.title3)
-                    )
+                // Menu AI Icon - Clickable to show example questions
+                Button(action: {
+                    print("🧠 SearchView: Brain icon tapped, showing question popup")
+                    showingQuestionPopup = true
+                }) {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "brain.head.profile")
+                                .foregroundColor(.white)
+                                .font(.title3)
+                        )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -556,6 +573,119 @@ struct TypingIndicator: View {
         .onAppear {
             isAnimating = true
         }
+    }
+}
+
+// MARK: - Example Questions Popup View
+struct ExampleQuestionsPopupView: View {
+    let exampleQuestions: [(question: String, explanation: String)]
+    let onQuestionSelected: (String) -> Void
+    
+    @State private var currentExampleIndex = 0
+    @State private var showingExamples = true
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header Section
+                VStack(spacing: 16) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Example Questions")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            Text("Tap any question to try it")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        // Menu AI Icon
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 44, height: 44)
+                            .overlay(
+                                Image(systemName: "brain.head.profile")
+                                    .foregroundColor(.white)
+                                    .font(.title3)
+                            )
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    
+                    Divider()
+                        .background(Color(.separator))
+                }
+                .background(Color(.systemBackground).opacity(0.95))
+                
+                // Main Content - Scrollable list of all example questions
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 32) {
+                        Spacer(minLength: 20)
+                        
+                        // Hero Section
+                        VStack(spacing: 16) {
+                            Text("Ask anything about restaurants")
+                                .font(.title)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("From poetic menus to emotional dining, discover restaurants that match your vibe")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 8)
+                        }
+                        
+                        // All Example Questions
+                        VStack(spacing: 16) {
+                            Text("Try asking:")
+                                .font(.headline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            ForEach(Array(exampleQuestions.enumerated()), id: \.offset) { index, example in
+                                ExampleQuestionCard(
+                                    question: example.question,
+                                    explanation: example.explanation
+                                ) {
+                                    print("💬 ExampleQuestionsPopupView: Question \(index + 1) selected")
+                                    onQuestionSelected(example.question)
+                                }
+                                .animation(.easeInOut(duration: 0.2), value: example.question)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                }
+                
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        print("✅ ExampleQuestionsPopupView: Dismissed via Done button")
+                        dismiss()
+                    }
+                    .foregroundColor(.orange)
+                    .fontWeight(.medium)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 

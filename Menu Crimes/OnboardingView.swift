@@ -173,86 +173,27 @@ struct OnboardingPageView: View {
 }
 
 // MARK: - Illustration Placeholder
-// Replace this with actual illustrations once they're created
+// SwiftUI mockups for onboarding illustrations
 struct IllustrationPlaceholder: View {
     let title: String
     let color: Color
     
     var body: some View {
         VStack(spacing: 20) {
-            // Main illustration area
-            RoundedRectangle(cornerRadius: 20)
-                .fill(color.opacity(0.1))
-                .frame(width: 280, height: 200)
-                .overlay(
-                    VStack(spacing: 12) {
-                        // Icon based on the screen
-                        Group {
-                            if title.contains("Scan") {
-                                Image(systemName: "camera.viewfinder")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(color)
-                                    .overlay(
-                                        // OCR-style highlights
-                                        VStack(spacing: 4) {
-                                            Rectangle()
-                                                .frame(width: 60, height: 2)
-                                                .foregroundColor(.orange.opacity(0.6))
-                                            Rectangle()
-                                                .frame(width: 45, height: 2)
-                                                .foregroundColor(.orange.opacity(0.6))
-                                        }
-                                        .offset(y: 30)
-                                    )
-                            } else if title.contains("Ask") {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "bubble.left.fill")
-                                        .font(.system(size: 30))
-                                        .foregroundColor(.blue)
-                                    
-                                    // Floating food icons
-                                    VStack(spacing: 4) {
-                                        Image(systemName: "fork.knife")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.orange)
-                                        Image(systemName: "cup.and.saucer.fill")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                            } else {
-                                // Deep Insights - Charts and analysis
-                                VStack(spacing: 8) {
-                                    Image(systemName: "chart.bar.fill")
-                                        .font(.system(size: 35))
-                                        .foregroundColor(.blue)
-                                    
-                                    // Price tags and percentages
-                                    HStack(spacing: 8) {
-                                        Text("$12")
-                                            .font(.caption)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(.green.opacity(0.2))
-                                            .cornerRadius(4)
-                                        
-                                        Text("85%")
-                                            .font(.caption)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(.orange.opacity(0.2))
-                                            .cornerRadius(4)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Text("Custom Illustration\nWill Go Here")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                    }
-                )
+            // Large SwiftUI mockup area - no background container
+            Group {
+                if title.contains("Scan") {
+                    // Large mock dish analysis card
+                    LargeMockDishAnalysisCard()
+                } else if title.contains("Ask") {
+                    // Large mock rotating questions
+                    LargeMockRotatingQuestions()
+                } else {
+                    // Large mock analysis breakdown
+                    LargeMockAnalysisBreakdown()
+                }
+            }
+            .frame(width: 280, height: 180)
         }
     }
 }
@@ -265,36 +206,414 @@ struct OnboardingPage {
     let color: Color
 }
 
-// MARK: - Help Button for Profile
-struct HelpButton: View {
-    @State private var showingOnboarding = false
-    
+
+
+// MARK: - Large Mock Components for Onboarding
+
+struct LargeMockDishAnalysisCard: View {
     var body: some View {
-        Button(action: {
-            print("📚 HelpButton: Showing onboarding help")
-            showingOnboarding = true
-        }) {
-            Image(systemName: "questionmark.circle")
-                .font(.title3)
-                .foregroundColor(.orange)
-        }
-        .sheet(isPresented: $showingOnboarding) {
-            NavigationView {
-                OnboardingView {
-                    showingOnboarding = false
+        VStack(spacing: 12) {
+            // Two dish analysis cards
+            HStack(spacing: 8) {
+                DishCard(name: "Truffle Pasta", price: "$28", margin: 85, cost: 4.20, description: "Premium pasta with minimal truffle oil")
+                DishCard(name: "Caesar Salad", price: "$18", margin: 92, cost: 1.44, description: "Simple greens with house dressing")
+            }
+            
+            // Summary stats
+            HStack(spacing: 16) {
+                VStack(spacing: 2) {
+                    Text("Avg Margin")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Text("88%")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
                 }
-                .navigationTitle("How it Works")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            showingOnboarding = false
-                        }
+                
+                VStack(spacing: 2) {
+                    Text("Dishes")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Text("12")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                }
+                
+                VStack(spacing: 2) {
+                    Text("Revenue")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Text("$1.2K")
+                        .font(.headline)
+                        .fontWeight(.bold)
                         .foregroundColor(.orange)
-                    }
                 }
             }
         }
+    }
+}
+
+struct DishCard: View {
+    let name: String
+    let price: String
+    let margin: Int
+    let cost: Double
+    let description: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text(price)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text("\(margin)%")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(margin >= 80 ? .green : margin >= 60 ? .orange : .red)
+                    
+                    Text("margin")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Text("Cost: $\(String(format: "%.2f", cost))")
+                .font(.caption)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.blue.opacity(0.15)))
+            
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
+        .frame(maxWidth: 120)
+    }
+}
+
+struct LargeMockRotatingQuestions: View {
+    @State private var currentIndex = 0
+    
+    private let questions = [
+        ("Which restaurants write their menu like they've read poetry?", "Looks for menus using metaphors, rhythm, or lyrical phrasing — not keywords."),
+        ("Where can I get a meal that feels like a breakup?", "Interprets emotional tone: melancholic descriptions, solo-portioned comfort food, sad humor."),
+        ("Find a menu where the chef is clearly overcompensating.", "Looks for exaggerated language, unnecessary luxury ingredients, or desperate bragging.")
+    ]
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // Header with AI branding
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [.orange, .red],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: "brain.head.profile")
+                            .foregroundColor(.white)
+                            .font(.caption)
+                    )
+                
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Menu AI")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Ask me anything about restaurants")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            
+            // Compact question card
+            VStack(alignment: .leading, spacing: 8) {
+                Text(questions[currentIndex].0)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(3)
+                    .animation(.easeInOut(duration: 0.5), value: currentIndex)
+                
+                Text(questions[currentIndex].1)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(4)
+                    .animation(.easeInOut(duration: 0.5), value: currentIndex)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+            
+            // Rotation indicator dots
+            HStack(spacing: 6) {
+                ForEach(0..<questions.count, id: \.self) { index in
+                    Circle()
+                        .fill(index == currentIndex ? Color.orange : Color.gray.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                        .animation(.easeInOut(duration: 0.3), value: currentIndex)
+                }
+            }
+        }
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    currentIndex = (currentIndex + 1) % questions.count
+                }
+            }
+        }
+    }
+}
+
+struct LargeMockAnalysisBreakdown: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            // Compact bar chart
+            VStack(spacing: 8) {
+                Text("Margin Analysis")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                HStack(alignment: .bottom, spacing: 8) {
+                    ForEach([("Apps", 85), ("Mains", 72), ("Desserts", 90), ("Drinks", 95)], id: \.0) { category, margin in
+                        VStack(spacing: 4) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(LinearGradient(
+                                    colors: [.orange.opacity(0.8), .red.opacity(0.6)],
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                ))
+                                .frame(width: 24, height: CGFloat(margin) * 0.8)
+                            
+                            Text("\(margin)%")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            Text(category)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                }
+                .frame(height: 100)
+            }
+            
+            // Compact statistics grid
+            HStack(spacing: 8) {
+                VStack(spacing: 4) {
+                    VStack(spacing: 2) {
+                        Text("Avg Margin")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("85%")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.green.opacity(0.1)))
+                    
+                    VStack(spacing: 2) {
+                        Text("Revenue")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("$2.3K")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.blue.opacity(0.1)))
+                }
+                
+                VStack(spacing: 4) {
+                    VStack(spacing: 2) {
+                        Text("Best")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("Drinks")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.orange.opacity(0.1)))
+                    
+                    VStack(spacing: 2) {
+                        Text("Dishes")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("24")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(RoundedRectangle(cornerRadius: 6).fill(Color(.systemGray5)))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Small Mock Components for Onboarding
+
+struct MockDishAnalysisCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Truffle Pasta")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text("$28")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text("85%")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                    
+                    Text("margin")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Text("Cost: $4.20")
+                .font(.caption2)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .background(RoundedRectangle(cornerRadius: 3).fill(Color.blue.opacity(0.15)))
+            
+            Text("Premium pasta with minimal truffle oil")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
+        .frame(maxWidth: 140)
+    }
+}
+
+struct MockRotatingQuestions: View {
+    @State private var currentIndex = 0
+    
+    private let questions = [
+        "Which restaurants write menus like poetry?",
+        "Find me food that feels like a hug?",
+        "Where can I eat something rebellious?"
+    ]
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 4) {
+                Image(systemName: "bubble.left.fill")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                
+                Image(systemName: "sparkles")
+                    .font(.caption2)
+                    .foregroundColor(.orange)
+            }
+            
+            Text(questions[currentIndex])
+                .font(.caption2)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .frame(maxWidth: 120)
+                .animation(.easeInOut, value: currentIndex)
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    currentIndex = (currentIndex + 1) % questions.count
+                }
+            }
+        }
+    }
+}
+
+struct MockAnalysisBreakdown: View {
+    var body: some View {
+        VStack(spacing: 6) {
+            // Chart representation
+            HStack(alignment: .bottom, spacing: 3) {
+                ForEach([65, 45, 80, 55], id: \.self) { height in
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.orange.opacity(0.7))
+                        .frame(width: 8, height: CGFloat(height) * 0.4)
+                }
+            }
+            .frame(height: 32)
+            
+            // Mock statistics
+            VStack(spacing: 3) {
+                HStack(spacing: 8) {
+                    Text("Average: 73%")
+                        .font(.caption2)
+                        .foregroundColor(.green)
+                    
+                    Text("$18.50")
+                        .font(.caption2)
+                        .foregroundColor(.blue)
+                }
+                
+                Text("12 dishes analyzed")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
+        .frame(maxWidth: 120)
     }
 }
 
