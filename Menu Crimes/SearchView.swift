@@ -275,14 +275,22 @@ struct SearchView: View {
     
     // MARK: - Functions
     private func startExampleRotation() {
-        Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 0.5)) {
+        // Debug: Starting example question rotation with smoother timing
+        print("🔄 SearchView: Starting example question rotation with 6-second intervals")
+        
+        Timer.scheduledTimer(withTimeInterval: 6.0, repeats: true) { _ in
+            // Slower, gentler fade out animation
+            withAnimation(.easeInOut(duration: 0.8)) {
                 showingExamples = false
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Longer delay for smoother transition between cards
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 currentExampleIndex = (currentExampleIndex + 1) % exampleQuestions.count
-                withAnimation(.easeInOut(duration: 0.5)) {
+                print("🔄 SearchView: Showing example question \(currentExampleIndex + 1) of \(exampleQuestions.count)")
+                
+                // Slower, gentler fade in animation  
+                withAnimation(.easeInOut(duration: 0.8)) {
                     showingExamples = true
                 }
             }
