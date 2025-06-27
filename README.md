@@ -1,105 +1,139 @@
-# Menu Crimes 🍽️📱
+# Ask Mr Menu - The Answer Engine for Your City’s Food Questions🍽️🤖
 
-A Snapchat-style camera-first iOS app for analyzing menu photos and sharing food experiences with friends.
+**AI-Powered Restaurant Menu Search + Analysis**
 
-## Features
+Ask Mr Menu is an iOS app that combines advanced AI technology with social features to analyze restaurant menus, discover hidden gems, and share culinary experiences. Think "Perplexity AI for restaurants" with sophisticated menu analysis capabilities.
 
-### 🎥 Camera & Media
-- **Photo & Video Capture**: Full-featured camera with photo and video recording capabilities
-- **Media Preview**: Preview captured photos and videos before sharing
-- **Gallery Access**: Browse and select media from photo library
-- **Video Conversion**: Automatic MOV to MP4 conversion for Supabase compatibility
-- **Duration Tracking**: Automatic video duration extraction and display
+## 🌟 Core Features
 
-### 👥 Social Features
-- **User Authentication**: Secure sign-up/sign-in with Supabase Auth
-- **Friend System**: Add friends, send/accept friend requests
-- **Contact Integration**: Find friends from your contacts
-- **Multiple Friend Selection**: Send photos/videos to multiple friends at once
-- **Media Sharing**: Share photos and videos with captions to friends
-- **View Tracking**: Mark media as viewed, auto-hide viewed content
+### 🧠 AI-Powered Menu Analysis
+- **Intelligent Menu Scanning**: Advanced OCR and Vision Framework integration for precise text extraction
+- **Profit Margin Analysis**: AI calculates estimated food costs and profit margins for each dish
+- **Interactive Annotations**: Tap on colored badges to see detailed cost breakdowns and justifications
+- **Smart Ingredient Detection**: Identifies ingredients for better search and dietary filtering
+- **Menu Embedding System**: RAG-powered vector database for intelligent menu search
+- **Restaurant Intelligence**: Comprehensive analysis with overall scoring and recommendations
 
-### 🔍 Analysis
-- **Media Inbox**: View received photos and videos from friends
-- **Unviewed Counter**: Badge showing number of unviewed items
-- **Full-Screen Playback**: Tap to view photos/videos in detail
-- **Clean Interface**: "All Caught Up!" when no unviewed content
+### 🔍 Premium AI Search ("Menu AI")
+- **Natural Language Queries**: Ask complex questions like "Which restaurants write their menu like poetry?"
+- **Contextual Understanding**: Interprets emotional tone, cooking techniques, and culinary styles
+- **Source Attribution**: Shows exactly which menus and dishes inform each answer
+- **Perplexity-Style Interface**: Professional chat experience with rotating example questions
+- **Vector Search**: Powered by Pinecone and OpenAI for semantic menu understanding
 
-### 🔐 Security & Privacy
-- **Row Level Security**: Database-level access control
-- **User Isolation**: Users can only see their own content and friend interactions
-- **Secure Storage**: Media files stored in Supabase Storage with proper access controls
+### 📸 Camera & Media Capabilities
+- **Menu Photography**: Optimized camera interface for capturing menu photos
+- **Gallery Integration**: Select existing photos for analysis
+- **Video Support**: Record and share culinary experiences
+- **Preview & Analysis**: Immediate menu analysis from captured photos
+- **High-Quality Processing**: Professional image handling with aspect ratio matching
+
+### 👥 Social & Sharing Features
+- **User Authentication**: Secure Supabase Auth integration
+- **Friend System**: Connect with other food enthusiasts
+- **Multiple Sharing**: Send analyses to multiple friends simultaneously
+- **Analysis History**: Track and revisit your menu discoveries
+- **Social Discovery**: Find friends through contacts integration
 
 ## Tech Stack
 
-- **Frontend**: SwiftUI (iOS only)
-- **Backend**: Supabase (Database, Auth, Storage)
-- **State Management**: @Observable pattern
-- **Media Processing**: AVFoundation for camera and video conversion
-- **Architecture**: MVVM with manager classes
+### Core Technologies
+- **Frontend**: SwiftUI (iOS 17+) with UIKit fallbacks
+- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
+- **AI/ML**: OpenAI GPT-4, Pinecone Vector Database, Apple Vision Framework
+- **State Management**: @Observable pattern (iOS 17 Observation framework)
+- **Media Processing**: AVFoundation, Vision Framework, Core Image
+- **Architecture**: MVVM with specialized manager classes
+
+### AI & Analysis Stack
+- **Menu Analysis**: Custom Supabase Edge Functions with OpenAI integration
+- **OCR Processing**: Apple Vision Framework for text recognition
+- **Vector Embeddings**: Pinecone for semantic search capabilities
+- **Natural Language Processing**: OpenAI for contextual understanding
+- **Image Processing**: Vision Framework for coordinate detection and annotation
 
 ## Project Structure
 
 ```
 Menu Crimes/
-├── Menu_CrimesApp.swift          # App entry point
-├── ContentView.swift             # Main tab interface
-├── Models.swift                  # Data models and enums
-├── Supabase.swift               # Supabase client configuration
+├── Menu_CrimesApp.swift              # App entry point
+├── ContentView.swift                 # Main tab interface (Camera, Search, Analysis, Profile)
+├── Models.swift                      # Core data models and enums
+├── Supabase.swift                   # Supabase client configuration
+│
+├── AI & Analysis/
+│   ├── MenuAnalysisManager.swift     # Core menu analysis orchestration
+│   ├── MenuAnalysisResultView.swift  # Analysis results with interactive UI
+│   ├── MenuAnnotationModels.swift    # Vision Framework integration
+│   ├── MenuAnnotationView.swift      # Interactive annotation display
+│   ├── MenuEmbeddingManager.swift    # RAG embedding system
+│   ├── SearchAIManager.swift         # AI-powered search functionality
+│   └── SearchView.swift             # Premium "Menu AI" search interface
+│
+├── Camera & Media/
+│   ├── CameraManager.swift           # Camera capture and permissions
+│   ├── CameraView.swift             # Main camera interface
+│   ├── CameraPreviewView.swift      # Camera preview component
+│   ├── PhotoGalleryManager.swift    # Gallery selection and management
+│   └── ImagePicker.swift            # Photo library integration
 │
 ├── Authentication/
-│   ├── AuthManager.swift         # User authentication logic
-│   └── AuthViews.swift          # Login/signup UI
+│   ├── AuthManager.swift             # Supabase Auth integration
+│   ├── AuthViews.swift              # Login/signup UI components
+│   └── ProfileView.swift            # User profile management
 │
-├── Camera/
-│   ├── CameraManager.swift       # Camera capture logic
-│   ├── CameraView.swift         # Main camera interface
-│   ├── CameraPreviewView.swift  # Camera preview component
-│   ├── VideoPreviewView.swift   # Video preview and sharing
-│   ├── ImagePicker.swift        # Photo library picker
-│   └── PhotoGalleryManager.swift # Gallery management
+├── Social Features/
+│   └── AnalysisView.swift           # Analysis history and sharing
 │
-├── Friends/
-│   ├── FriendManager.swift       # Friend system logic
-│   ├── FriendViews.swift        # Friend list and requests UI
-│   ├── FriendSelectionView.swift # Friend selection for sharing
-│   └── ProfileView.swift        # User profile management
+├── Database/
+│   └── sql/
+│       └── tables.sql               # Database schema with RLS
 │
-├── Sharing/
-│   ├── PhotoShareManager.swift   # Media upload and sharing
-│   └── AnalysisView.swift       # Received media display
-│
-└── sql/
-    ├── 04_shared_photos.sql     # Media sharing database schema
-    └── 05_add_video_support.sql # Video support extensions
+└── Assets/
+    ├── menu_items.json              # Sample data for development
+    └── Sears-Menu-Breakfast-1.jpg   # Test menu image
 ```
 
-## Key Components
+## Key AI & Analysis Components
+
+### MenuAnalysisManager (@Observable)
+- **Core Analysis Orchestration**: Manages the complete menu analysis pipeline
+- **Supabase Edge Function Integration**: Calls "anaylze-menu" function with OpenAI
+- **Parallel Processing**: Runs analysis and embedding processes simultaneously
+- **State Management**: Handles loading, success, and error states
+- **Image Upload**: Manages Supabase Storage integration for menu photos
+
+### MenuAnnotationModels & MenuAnnotationView
+- **Vision Framework Integration**: Advanced OCR with precise coordinate detection
+- **Interactive Annotations**: Clickable badges showing profit margins and cost breakdowns
+- **Smart Text Matching**: Multiple matching strategies with confidence scoring
+- **Visual Design**: Color-coded margin indicators with professional styling
+- **Coordinate System**: Pixel-perfect positioning of annotations over detected text
+
+### MenuEmbeddingManager (@Observable)
+- **RAG Database Integration**: Processes menus for vector search capabilities
+- **Intelligent Chunking**: Creates structured menu chunks by sections and dishes
+- **Restaurant Integration**: Links all data to specific restaurants
+- **Supabase Edge Function**: Calls "embed-menu" for vector processing
+- **Parallel Processing**: Runs alongside analysis without blocking UI
+
+### SearchAIManager (@Observable)
+- **Natural Language Processing**: Handles complex restaurant queries
+- **Supabase Edge Function**: Integrates with "search-menus" endpoint
+- **Source Attribution**: Returns AI answers with specific menu sources
+- **Error Handling**: Graceful fallbacks and user-friendly error messages
+- **Real-time Search**: Async processing with loading states
+
+### CameraManager & Media Processing
+- **Menu-Optimized Capture**: Camera settings optimized for document photography
+- **Preview Matching**: Ensures captured photos match preview exactly
+- **Gallery Integration**: Seamless photo library access
+- **Format Handling**: Automatic image processing and optimization
 
 ### AuthManager (@Observable)
-- Handles user authentication with Supabase Auth
-- Manages authentication state throughout the app
-- Supports sign-up, sign-in, sign-out, and profile updates
-- Automatic session checking and restoration
-
-### FriendManager (@Observable)
-- Manages friend relationships and requests
-- Integrates with contacts for friend discovery
-- Handles friend request sending, accepting, and rejection
-- Loads and caches friend lists
-
-### PhotoShareManager (@Observable)
-- Handles media upload to Supabase Storage
-- Manages sharing photos/videos with single or multiple friends
-- Tracks sent and received media
-- Provides unviewed media filtering
-- Supports both photo and video formats
-
-### CameraManager
-- Controls camera functionality and permissions
-- Handles photo capture and video recording
-- Manages camera switching (front/back)
-- Integrates with AVFoundation
+- **Secure Authentication**: Supabase Auth with row-level security
+- **User Profile Management**: Handles usernames, avatars, and preferences
+- **Session Management**: Automatic token refresh and state persistence
 
 ## Database Schema
 
@@ -124,15 +158,24 @@ Menu Crimes/
 - Supabase account and project
 
 ### Configuration
+
 1. **Supabase Setup**:
    - Create a Supabase project
    - Run the SQL files in `/sql/` folder to set up database schema
    - Configure authentication settings
-   - Set up storage bucket for media files
+   - Set up storage buckets: `analysis/`, `polls/`, and general media
+   - Deploy edge functions: `anaylze-menu`, `embed-menu`, `search-menus`
 
-2. **App Configuration**:
+2. **AI Service Configuration**:
+   - **OpenAI API**: Configure API key in Supabase edge functions
+   - **Pinecone Database**: Set up vector database for menu embeddings
+   - **Edge Function Environment**: Configure AI service credentials
+   - **Storage Policies**: Enable public read access for analysis images
+
+3. **App Configuration**:
    - Update `Supabase.swift` with your Supabase URL and anon key
    - Ensure camera permissions are configured in `Info.plist`
+   - Verify iOS 17+ target for Vision Framework compatibility
    - Build and run the project
 
 ### Environment Setup
@@ -150,16 +193,33 @@ let supabase = SupabaseClient(
 
 ### Getting Started
 1. **Sign Up**: Create an account with email and username
-2. **Add Friends**: Search by username or import from contacts
-3. **Capture Media**: Use the camera tab to take photos or record videos
-4. **Share**: Select friends and send media with optional captions
-5. **View**: Check the Analysis tab for received media from friends
+2. **Analyze Menus**: Use the camera tab to capture restaurant menus
+3. **AI Analysis**: Get instant profit margin analysis and dish recommendations
+4. **Interactive Annotations**: Tap on colored badges to see detailed cost breakdowns
+5. **Smart Search**: Use "Menu AI" to ask natural language questions about restaurants
+6. **Analysis History**: Review your menu analysis history in the Analysis tab
 
-### Key User Flows
-- **Camera-First Experience**: Default to camera tab for Snapchat-style interaction
-- **Multiple Friend Sharing**: Select multiple friends when sharing media
-- **Inbox Experience**: View received media, automatically hide after viewing
-- **Friend Management**: Add friends, manage requests, view friend profiles
+### Core AI Features
+
+#### Menu Analysis Workflow
+1. **Capture Menu**: Take a photo of any restaurant menu
+2. **Automatic Analysis**: AI analyzes each dish for profit margins and ingredients
+3. **Interactive Annotations**: View color-coded margin indicators overlaid on menu items
+4. **Detailed Breakdowns**: Tap any badge to see cost analysis and recommendations
+5. **Smart Recommendations**: Get AI-powered suggestions for high-value dishes
+
+#### Menu AI Search
+1. **Natural Language Queries**: Ask questions like "Best seafood restaurants with good margins"
+2. **Intelligent Responses**: Get AI-generated answers with source attribution
+3. **Restaurant Discovery**: Find restaurants based on cuisine, price, or specific dishes
+4. **Source Integration**: See actual menu excerpts supporting each recommendation
+
+#### Advanced Features
+- **Vision Framework OCR**: Precise text detection and coordinate mapping
+- **Profit Margin Calculations**: Estimated food costs vs. menu prices
+- **Interactive Annotations**: Clickable overlays with detailed justifications
+- **RAG Database**: Vector embeddings for semantic menu search
+- **Restaurant Context**: All analysis linked to specific restaurant locations
 
 ## Architecture Patterns
 
@@ -181,26 +241,35 @@ let supabase = SupabaseClient(
 - **Models**: Data structures with Codable conformance
 - **Extensions**: Utility functions and view modifiers
 
-## Recent Updates
+## Recent AI & Analysis Updates
 
-### Video Support
-- ✅ Full video recording and sharing functionality
-- ✅ Video preview with playback controls
-- ✅ MOV to MP4 conversion for Supabase compatibility
-- ✅ Video duration tracking and display
-- ✅ Unified media sharing interface for photos and videos
+### Menu Analysis System
+- ✅ **OpenAI Integration**: Complete menu analysis with profit margin calculations
+- ✅ **Vision Framework OCR**: Precise text detection and coordinate mapping
+- ✅ **Interactive Annotations**: Clickable badges with detailed cost breakdowns
+- ✅ **Smart Text Matching**: Multiple matching strategies with confidence scoring
+- ✅ **Parallel Processing**: Analysis and embedding run simultaneously
 
-### Multiple Friend Selection
-- ✅ Select multiple friends when sharing media
-- ✅ Efficient media upload (upload once, share with multiple)
-- ✅ Dynamic UI showing selection count
-- ✅ Batch database operations for performance
+### AI-Powered Search ("Menu AI")
+- ✅ **Natural Language Processing**: Complex restaurant queries with context
+- ✅ **RAG Database Integration**: Vector embeddings for semantic search
+- ✅ **Source Attribution**: AI answers with specific menu sources
+- ✅ **Perplexity-Style UI**: Premium search interface with professional design
+- ✅ **Real-time Processing**: Async search with loading states
 
-### Code Quality Improvements
-- ✅ Eliminated code duplication between photo and video sharing
-- ✅ Unified FriendSelectionView for all media types
-- ✅ Enhanced error handling and debug logging
-- ✅ Proper state management with @Observable pattern
+### Advanced Vision & Annotation Features
+- ✅ **Coordinate System Fix**: Pixel-perfect annotation positioning
+- ✅ **Restaurant Name Integration**: Auto-extraction and user input
+- ✅ **Intelligent Chunking**: Menu sections with smart categorization
+- ✅ **Interactive Overlays**: Touch-responsive margin indicators
+- ✅ **Professional UI**: Color-coded visual hierarchy and typography
+
+### Technical Infrastructure
+- ✅ **Supabase Edge Functions**: Custom AI endpoints for analysis and search
+- ✅ **Pinecone Vector Database**: Semantic similarity matching
+- ✅ **Embedding Pipeline**: Automatic menu processing for search
+- ✅ **Error Handling**: Comprehensive fallbacks and user feedback
+- ✅ **Debug Logging**: Enhanced troubleshooting throughout AI pipeline
 
 ## Development Guidelines
 
@@ -228,13 +297,9 @@ When making changes:
 
 ## Future Enhancements
 
-- 🎯 AI-powered menu analysis and recommendations
-- 📊 Advanced analytics with TelemetryDeck integration
-- 💰 Monetization features with RevenueCat
-- 🔔 Push notifications for friend requests and new media
-- 🎨 Advanced media editing capabilities
-- 🌐 Social discovery and restaurant integration
+### Planned AI Features
+- 📈 **Trend Analysis**: Market insights and pricing recommendations
 
 ---
 
-**Menu Crimes** - Where food photography meets social networking! 🍽️📸
+**Ask Mr Menu** - Building the worlds knowledge graph for menus one photo at a time! 🍽️📸
