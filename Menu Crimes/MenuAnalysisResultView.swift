@@ -19,6 +19,9 @@ struct MenuAnalysisResultView: View {
     // MARK: - Dish Selection State
     @State private var selectedDishes: Set<UUID> = []
     @State private var showingAnnotation = false
+    @State private var generatedAnnotations: UIImage?
+    @State private var isLoadingAnnotations = false
+    @State private var showingShareSheet = false
     
     // MARK: - Restaurant Name State
     @State private var restaurantName: String = ""
@@ -164,27 +167,33 @@ struct MenuAnalysisResultView: View {
                                             if !selectedDishes.isEmpty {
                                                 Button(action: {
                                                     print("📊 MenuAnalysisResultView: Annotate Menu button tapped with \(selectedDishes.count) selected dishes")
-                                                    // Prepare annotation manager with current analysis data and image
-                                                    prepareAnnotationData(response: response)
-                                                    showingAnnotation = true
+                                                    // Generate annotations directly
+                                                    generateAnnotationsDirectly(response: response)
                                                 }) {
                                                     HStack {
-                                                        Image(systemName: "doc.text.image")
-                                                        Text("Annotate Menu (\(selectedDishes.count) dishes)")
+                                                        if isLoadingAnnotations {
+                                                            ProgressView()
+                                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                                .scaleEffect(0.8)
+                                                        } else {
+                                                            Image(systemName: "doc.text.image")
+                                                        }
+                                                        Text(isLoadingAnnotations ? "Generating..." : "Generate Annotated Menu")
+                                                            .font(.headline)
                                                     }
-                                                    .font(.headline)
                                                     .foregroundColor(.white)
                                                     .frame(maxWidth: .infinity)
                                                     .padding()
                                                     .background(
                                                         LinearGradient(
-                                                            gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                                            gradient: Gradient(colors: [.orange, .red]),
                                                             startPoint: .leading,
                                                             endPoint: .trailing
                                                         )
                                                     )
                                                     .cornerRadius(12)
                                                 }
+                                                .disabled(isLoadingAnnotations)
                                                 .padding(.top, 8)
                                             }
                                         }
@@ -227,18 +236,73 @@ struct MenuAnalysisResultView: View {
             }
             .navigationTitle("Menu Analysis")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") {
-                        print("📊 MenuAnalysisResultView: Done button tapped")
-                        menuAnalysisManager.resetAnalysisState()
-                        onDone()
-                    }
+            .navigationBarItems(
+                leading: Button("Done") {
+                    print("📊 MenuAnalysisResultView: Done button tapped")
+                    menuAnalysisManager.resetAnalysisState()
+                    onDone()
                 }
-            }
+            )
         }
         .sheet(isPresented: $showingAnnotation) {
-            MenuAnnotationView(annotationManager: menuAnnotationManager)
+            if let annotatedImage = generatedAnnotations {
+                NavigationView {
+                    ZStack {
+                        Color.black.ignoresSafeArea()
+                        
+                        ScrollView([.horizontal, .vertical]) {
+                            Image(uiImage: annotatedImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit) 
+                                .frame(maxWidth: UIScreen.main.bounds.width * 1.5, maxHeight: UIScreen.main.bounds.height * 1.5)
+                                .padding()
+                        }
+                    }
+                    .navigationTitle("Annotated Menu")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarItems(
+                        leading: Button("Done") {
+                            showingAnnotation = false
+                        }
+                        .foregroundColor(.white),
+                        trailing: Button(action: {
+                            showingShareSheet = true
+                        }) {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.white)
+                        }
+                    )
+                }
+            } else {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                        .scaleEffect(1.5)
+                    
+                    Text("Generating annotated menu...")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(UIColor.systemBackground))
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let annotatedImage = generatedAnnotations {
+                ActivityViewController(activityItems: [annotatedImage], applicationActivities: nil)
+            } else {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                        .scaleEffect(1.5)
+                    
+                    Text("Generating annotated menu...")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(UIColor.systemBackground))
+            }
         }
     }
     
@@ -280,6 +344,46 @@ struct MenuAnalysisResultView: View {
             return .orange
         } else {
             return .red
+        }
+    }
+    
+    private func generateAnnotationsDirectly(response: MenuAnalysisResponse) {
+        isLoadingAnnotations = true
+        generatedAnnotations = nil // Clear previous annotations
+        
+        // Filter selected dishes
+        let selectedDishesArray = response.analysis.dishes.filter { dish in
+            selectedDishes.contains(dish.id)
+        }
+        
+        print("📊 MenuAnalysisResultView: Generating annotations for \(selectedDishesArray.count) selected dishes")
+        
+        Task {
+            do {
+                // Generate annotations using the manager
+                let annotatedImage = await menuAnnotationManager.generateAnnotations(
+                    for: selectedDishesArray, 
+                    image: image
+                )
+                
+                await MainActor.run {
+                    if let annotatedImage = annotatedImage {
+                        print("✅ MenuAnalysisResultView: Successfully generated annotated image")
+                        generatedAnnotations = annotatedImage
+                        showingAnnotation = true
+                    } else {
+                        print("❌ MenuAnalysisResultView: Failed to generate annotated image")
+                        // Could show an error alert here
+                    }
+                    isLoadingAnnotations = false
+                }
+            } catch {
+                print("❌ MenuAnalysisResultView: Error generating annotations: \(error)")
+                await MainActor.run {
+                    isLoadingAnnotations = false
+                    // Could show an error alert here
+                }
+            }
         }
     }
 }
@@ -603,6 +707,8 @@ struct RestaurantNameInputView: View {
     }
 }
 
+// MARK: - Preview
+
 #Preview {
     MenuAnalysisResultView(
         image: UIImage(systemName: "photo") ?? UIImage(),
@@ -617,4 +723,20 @@ struct RestaurantNameInputView: View {
         ),
         onDone: {}
     )
+}
+
+struct ActivityViewController: UIViewControllerRepresentable {
+    var activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities)
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // Nothing to do here
+    }
 }

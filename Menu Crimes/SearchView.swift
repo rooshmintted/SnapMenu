@@ -2,7 +2,7 @@
 //  SearchView.swift
 //  Menu Crimes
 //
-//  ChatGPT-style search interface with rotating example previews
+//  Premium AI-powered restaurant search interface
 //
 
 import SwiftUI
@@ -12,6 +12,7 @@ struct SearchView: View {
     @State private var currentExampleIndex = 0
     @State private var messages: [SearchMessage] = []
     @State private var isLoading = false
+    @State private var showingExamples = true
     
     // AI Search Manager
     @State var searchAIManager = SearchAIManager()
@@ -48,273 +49,225 @@ struct SearchView: View {
         ),
         (
             "Which places have menus that would make Gordon Ramsay yell?",
-            "Finds pretentious wording, overdone formatting, or ridiculous item names."
-        ),
-        (
-            "Where can I get dinner and existential dread for under $30?",
-            "Combines dark-humored menus, dim ambiance, and dishes like \"Absinthe-glazed marrow.\""
-        ),
-        (
-            "Which restaurants are probably a front for something else?",
-            "Looks for suspiciously vague menus, wildly inconsistent pricing, or oddly generic names."
-        ),
-        (
-            "Which Italian restaurants near me serve both gluten-free pasta and tiramisu under $20?",
-            "Requires parsing specific dish names, dietary tags, prices, and local context from menus."
-        ),
-        (
-            "Find restaurants with a kid's menu that doesn't have just chicken nuggets and fries.",
-            "Needs understanding of \"just nuggets and fries\" as a category exclusion, not a keyword."
-        ),
-        (
-            "Which sushi places offer omakase but don't mention market price?",
-            "Involves identifying omakase mentions and filtering based on pricing language."
-        ),
-        (
-            "What's the most unique dessert offered across all Thai restaurants in Manhattan?",
-            "Requires comparing dessert menus and detecting unusual or uncommon items."
-        ),
-        (
-            "Which places serve brunch all day but don't say it explicitly?",
-            "Needs semantic interpretation of brunch hours, implied availability."
-        ),
-        (
-            "List restaurants that describe their food with humor or personality on the menu.",
-            "Looks for tone/style, like \"Bacon that slaps harder than your ex.\""
-        ),
-        (
-            "Where can I get spicy vegetarian food that isn't Indian or Mexican?",
-            "Requires dish-level cuisine detection and spice/vegetarian filtering."
-        ),
-        (
-            "Find places that list both French onion soup and Philly cheesesteaks.",
-            "Combines two rare pairings, possibly across cuisines, unlikely to be found with keyword search."
-        ),
-        (
-            "Which restaurants mention sustainability or local sourcing directly in their menu descriptions?",
-            "Needs sentence-level inference from menu copy, not just site tags."
-        ),
-        (
-            "Are there restaurants where drinks cost more than any of the food items?",
-            "Requires numerical comparison of prices across menu sections."
+            "Searches for poor technique descriptions or questionable ingredient combinations."
         )
     ]
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Chat Messages Area
-                if messages.isEmpty {
-                    emptyStateView
+        VStack(spacing: 0) {
+            // Header
+            headerView
+            
+            // Main Content
+            ZStack {
+                if messages.isEmpty && !isLoading {
+                    // Welcome State
+                    welcomeView
                 } else {
+                    // Chat Messages
                     messagesView
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // Search Input
+            searchInputView
+        }
+        .background(Color(.systemBackground))
+        .onAppear {
+            startExampleRotation()
+        }
+    }
+    
+    // MARK: - Header View
+    private var headerView: some View {
+        VStack(spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Menu AI")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Discover restaurants with intelligence")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                // Input Area
-                inputArea
-            }
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
-            .background(Color.black)
-            .onAppear {
-                print("🔍 SearchView: Appeared, starting example rotation")
-                startExampleRotation()
-            }
-        }
-    }
-    
-    // MARK: - Empty State with Rotating Examples
-    private var emptyStateView: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                // App branding
-                VStack(spacing: 16) {
-                    Image(systemName: "magnifyingglass.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.orange)
-                    
-                    Text("Menu Crimes Search")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("Ask questions about menus the way you actually think")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                .padding(.top, 40)
-                
-                // Rotating Example Preview
-                rotatingExampleView
-                
-                // Getting Started Instructions
-                VStack(spacing: 12) {
-                    Text("Getting Started")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text("Try asking about restaurants in natural language. Search for vibes, emotions, or specific food combinations.")
-                        .font(.body)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                }
-                .padding(.bottom, 100) // Extra space for input area
-            }
-        }
-    }
-    
-    // MARK: - Rotating Example View
-    private var rotatingExampleView: some View {
-        VStack(spacing: 16) {
-            // Example indicator dots
-            HStack(spacing: 8) {
-                ForEach(0..<min(5, exampleQuestions.count), id: \.self) { index in
-                    Circle()
-                        .fill(index == (currentExampleIndex % 5) ? Color.orange : Color.gray)
-                        .frame(width: 8, height: 8)
-                        .animation(.easeInOut(duration: 0.3), value: currentExampleIndex)
-                }
-            }
-            .padding(.bottom, 8)
-            
-            // Example card
-            VStack(alignment: .leading, spacing: 12) {
-                Text(exampleQuestions[currentExampleIndex].question)
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
-                
-                Text(exampleQuestions[currentExampleIndex].explanation)
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.leading)
-            }
-            .padding(20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray.opacity(0.1))
+                // Menu AI Icon
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [.orange, .red],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 44, height: 44)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                        Image(systemName: "brain.head.profile")
+                            .foregroundColor(.white)
+                            .font(.title3)
                     )
-            )
-            .padding(.horizontal, 24)
-            .animation(.easeInOut(duration: 0.5), value: currentExampleIndex)
-            .onTapGesture {
-                // Tap to use this example
-                searchText = exampleQuestions[currentExampleIndex].question
-                print("🔍 SearchView: Selected example question: \(searchText)")
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            
+            Divider()
+                .background(Color(.separator))
+        }
+        .background(Color(.systemBackground).opacity(0.95))
+    }
+    
+    // MARK: - Welcome View
+    private var welcomeView: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 32) {
+                Spacer(minLength: 40)
+                
+                // Hero Section
+                VStack(spacing: 16) {
+                    Text("Ask anything about restaurants")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.primary)
+                    
+                    Text("Search menus with natural language. Find dishes, analyze pricing, discover hidden gems.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
+                }
+                
+                // Example Questions
+                VStack(spacing: 12) {
+                    Text("Try asking:")
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    if showingExamples {
+                        ExampleQuestionCard(
+                            question: exampleQuestions[currentExampleIndex].question,
+                            explanation: exampleQuestions[currentExampleIndex].explanation
+                        ) {
+                            searchText = exampleQuestions[currentExampleIndex].question
+                        }
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, 20)
         }
     }
     
     // MARK: - Messages View
     private var messagesView: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(messages) { message in
-                    MessageBubble(message: message)
-                }
-                
-                // Show typing indicator when loading
-                if isLoading {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 8) {
-                                Text("Menu AI is thinking")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                                
-                                TypingIndicator()
-                            }
-                            .padding(12)
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+        ScrollViewReader { scrollProxy in
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: 24) {
+                    ForEach(messages) { message in
+                        if message.isUser {
+                            UserMessageBubble(message: message)
+                                .id(message.id)
+                        } else {
+                            AIResponseCard(message: message)
+                                .id(message.id)
                         }
-                        
-                        Spacer()
                     }
+                    
+                    // Typing Indicator
+                    if isLoading {
+                        TypingIndicatorCard()
+                            .id("typing")
+                    }
+                    
+                    // Bottom spacing for input
+                    Color.clear.frame(height: 20)
                 }
-                
-                if !messages.isEmpty {
-                    HStack {
-                        Spacer()
-                        Text("Powered by OpenAI & Menu Crimes Database")
-                            .font(.caption)
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+            }
+            .onChange(of: messages.count) { _ in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    if let lastMessage = messages.last {
+                        scrollProxy.scrollTo(lastMessage.id, anchor: .bottom)
                     }
-                    .padding()
                 }
             }
-            .padding(.horizontal)
-            .padding(.top)
+            .onChange(of: isLoading) { loading in
+                if loading {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        scrollProxy.scrollTo("typing", anchor: .bottom)
+                    }
+                }
+            }
         }
     }
     
-    // MARK: - Input Area
-    private var inputArea: some View {
-        VStack(spacing: 12) {
-            // Rotating preview above input (condensed version)
-            if messages.isEmpty {
-                HStack {
-                    Text("Try: ")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+    // MARK: - Search Input View
+    private var searchInputView: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .background(Color(.separator))
+            
+            HStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 16))
                     
-                    Text(exampleQuestions[currentExampleIndex].question)
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .animation(.easeInOut(duration: 0.3), value: currentExampleIndex)
-                        .onTapGesture {
-                            searchText = exampleQuestions[currentExampleIndex].question
+                    TextField("Ask about restaurants, dishes, or menus...", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .font(.body)
+                        .onSubmit {
+                            sendMessage()
                         }
                     
-                    Spacer()
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 16))
+                        }
+                    }
                 }
-                .padding(.horizontal)
-            }
-            
-            // Input field
-            HStack(spacing: 12) {
-                TextField("Ask about restaurants...", text: $searchText, axis: .vertical)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.gray.opacity(0.2))
-                    )
-                    .foregroundColor(.white)
-                    .lineLimit(1...4)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
                 
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.title2)
-                        .foregroundColor(searchText.isEmpty ? .gray : .orange)
+                        .foregroundColor(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .secondary : .orange)
                 }
-                .disabled(searchText.isEmpty || isLoading)
+                .disabled(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
             }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Color(.systemBackground))
         }
-        .background(
-            Rectangle()
-                .fill(Color.black.opacity(0.95))
-                .ignoresSafeArea()
-        )
     }
     
-    // MARK: - Actions
+    // MARK: - Functions
     private func startExampleRotation() {
-        // Rotate examples every 4 seconds
         Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
             withAnimation(.easeInOut(duration: 0.5)) {
+                showingExamples = false
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 currentExampleIndex = (currentExampleIndex + 1) % exampleQuestions.count
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showingExamples = true
+                }
             }
         }
     }
@@ -351,38 +304,217 @@ struct SearchView: View {
                         id: UUID(),
                         content: response.answer,
                         isUser: false,
-                        timestamp: Date()
+                        timestamp: Date(),
+                        sources: response.sources
                     )
                     self.messages.append(responseMessage)
-                    
-                    // Add sources if available
-                    if !response.sources.isEmpty {
-                        let sourcesText = "Sources:\n" + response.sources.prefix(3).map { source in
-                            "• \(source.restaurant) - \(source.text)"
-                        }.joined(separator: "\n")
-                        
-                        let sourcesMessage = SearchMessage(
-                            id: UUID(),
-                            content: sourcesText,
-                            isUser: false,
-                            timestamp: Date()
-                        )
-                        self.messages.append(sourcesMessage)
-                    }
                     
                 case .error(let errorMessage):
                     let errorResponseMessage = SearchMessage(
                         id: UUID(),
-                        content: "Sorry, I encountered an error while searching: \(errorMessage)",
+                        content: "I'm having trouble searching right now. Please try again in a moment.",
                         isUser: false,
-                        timestamp: Date()
+                        timestamp: Date(),
+                        isError: true
                     )
                     self.messages.append(errorResponseMessage)
+                    print("🔍 SearchView Error: \(errorMessage)")
                     
                 default:
                     break
                 }
             }
+        }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct ExampleQuestionCard: View {
+    let question: String
+    let explanation: String
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(question)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
+                
+                Text(explanation)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct UserMessageBubble: View {
+    let message: SearchMessage
+    
+    var body: some View {
+        HStack {
+            Spacer(minLength: 50)
+            
+            VStack(alignment: .trailing, spacing: 8) {
+                Text(message.content)
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .padding(16)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                
+                Text(message.timestamp, style: .time)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+}
+
+struct AIResponseCard: View {
+    let message: SearchMessage
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            // AI Avatar
+            Circle()
+                .fill(Color(.systemGray5))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                )
+            
+            VStack(alignment: .leading, spacing: 12) {
+                // Response Content
+                if message.isError {
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .padding(16)
+                        .background(Color(.systemRed).opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .padding(16)
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                
+                // Sources Section
+                if let sources = message.sources, !sources.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Sources")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        
+                        ForEach(Array(sources.prefix(3).enumerated()), id: \.offset) { index, source in
+                            SourceCard(source: source, index: index + 1)
+                        }
+                    }
+                }
+                
+                Text(message.timestamp, style: .time)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer(minLength: 20)
+        }
+    }
+}
+
+struct SourceCard: View {
+    let source: SearchSource
+    let index: Int
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text("\(index)")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(Color.orange))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(source.restaurant)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.orange)
+                
+                Text(source.text)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                
+                if let price = source.price {
+                    Text(price)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(12)
+        .background(Color(.systemBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(.separator), lineWidth: 0.5)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+struct TypingIndicatorCard: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Circle()
+                .fill(Color(.systemGray5))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                )
+            
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Text("Menu AI is thinking")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                    
+                    TypingIndicator()
+                }
+                .padding(16)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            
+            Spacer(minLength: 20)
         }
     }
 }
@@ -393,49 +525,8 @@ struct SearchMessage: Identifiable {
     let content: String
     let isUser: Bool
     let timestamp: Date
-}
-
-// MARK: - Message Bubble Component
-struct MessageBubble: View {
-    let message: SearchMessage
-    
-    var body: some View {
-        HStack {
-            if message.isUser {
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(message.content)
-                        .padding(12)
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 16)
-                        )
-                    
-                    Text(message.timestamp, style: .time)
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(message.content)
-                        .padding(12)
-                        .background(Color.gray.opacity(0.2))
-                        .foregroundColor(.white)
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 16)
-                        )
-                    
-                    Text(message.timestamp, style: .time)
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
-            }
-        }
-    }
+    var sources: [SearchSource]?
+    var isError: Bool = false
 }
 
 // MARK: - Typing Indicator Component

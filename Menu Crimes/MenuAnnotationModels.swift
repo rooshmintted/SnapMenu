@@ -163,6 +163,40 @@ final class MenuAnnotationManager {
         }
     }
     
+    /// Generate annotations directly for selected dishes
+    /// - Parameters:
+    ///   - dishes: Array of selected DishAnalysis objects
+    ///   - image: Original menu image
+    /// - Returns: Annotated UIImage with bounding boxes and margin badges
+    func generateAnnotations(for dishes: [DishAnalysis], image: UIImage) async -> UIImage? {
+        print("🎯 Starting direct annotation generation for \(dishes.count) selected dishes...")
+        
+        // Create temporary MenuAnalysisResponse for selected dishes
+        let tempAnalysis = AnalysisData(
+            dishes: dishes,
+            overall_notes: "Direct annotation generation"
+        )
+        
+        let tempResponse = MenuAnalysisResponse(
+            success: true,
+            analysis: tempAnalysis,
+            dishes_found: dishes.count
+        )
+        
+        // Set the data temporarily
+        self.setAnalysisData(tempResponse, image: image)
+        
+        // Generate the annotated image
+        await generateAnnotatedImage()
+        
+        // Return the generated image data as UIImage
+        if let imageData = annotatedImageData {
+            return UIImage(data: imageData)
+        }
+        
+        return nil
+    }
+    
     // MARK: - Text Detection using Vision Framework
     private func detectTextRegions(in image: UIImage) async throws -> [DetectedTextRegion] {
         return try await withCheckedThrowingContinuation { continuation in
@@ -194,11 +228,11 @@ final class MenuAnnotationManager {
                     let text = candidate.string
                     let confidence = candidate.confidence
                     
-                    // Convert Vision coordinates (normalized, bottom-left origin) to UIKit coordinates (top-left origin)
+                    // Convert Vision coordinates (normalized, bottom-left origin) to UIImage coordinates (top-left origin)
                     let visionBounds = observation.boundingBox
-                    let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
                     
-                    // Convert normalized coordinates to pixel coordinates and flip Y-axis
+                    // Convert normalized coordinates directly to UIImage coordinate space
+                    let imageSize = image.size
                     let x = visionBounds.origin.x * imageSize.width
                     let y = (1 - visionBounds.origin.y - visionBounds.height) * imageSize.height  // Flip Y-axis for UIKit
                     let width = visionBounds.size.width * imageSize.width
@@ -214,7 +248,8 @@ final class MenuAnnotationManager {
                     
                     detectedRegions.append(region)
                     
-                    print("📍 Detected: '\(text)' at Vision coords: \(visionBounds) → UIKit coords: \(convertedBounds)")
+                    print("📍 Detected: '\(text)' at Vision coords: \(visionBounds) → UIImage coords: \(convertedBounds)")
+                    print("   Image size used for conversion: \(imageSize)")
                 }
                 
                 continuation.resume(returning: detectedRegions)
@@ -336,23 +371,60 @@ final class MenuAnnotationManager {
         print("📊 MenuAnnotationManager: Creating annotated image")
         print("   Input base image size: \(baseImage.size)")
         print("   Input base image scale: \(baseImage.scale)")
+        print("   Input base image orientation: \(baseImage.imageOrientation.rawValue)")
         
-        let renderer = UIGraphicsImageRenderer(size: baseImage.size)
+        guard let cgImage = baseImage.cgImage else {
+            print("❌ Failed to get CGImage from base image")
+            return baseImage
+        }
         
-        return renderer.image { context in
-            // Draw the base image
-            baseImage.draw(at: .zero)
+        // Use the UIImage size for rendering (accounts for orientation and scale)
+        let renderSize = baseImage.size
+        let pixelSize = CGSize(width: cgImage.width, height: cgImage.height)
+        
+        print("   Render size: \(renderSize)")
+        print("   Pixel size: \(pixelSize)")
+        
+        // Create renderer with the same format as the original image
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = baseImage.scale
+        format.opaque = false
+        
+        let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
+        
+        let annotatedImage = renderer.image { context in
+            let cgContext = context.cgContext
+            
+            // Save the current graphics state
+            cgContext.saveGState()
+            
+            // Draw the base image in its natural orientation and size
+            baseImage.draw(in: CGRect(origin: .zero, size: renderSize))
             
             // Add annotations for each matched dish
+            // No coordinate scaling needed since coordinates are already in UIImage space
             for (dish, textRegion) in matchedDishes {
+                print("📍 Drawing annotation for '\(dish.dishName)')")
+                print("   UIImage coordinate bounds: \(textRegion.boundingBox)")
+                print("   Render size: \(renderSize)")
+                
                 drawVisionBasedAnnotation(
                     for: dish,
                     at: textRegion,
                     on: context,
-                    imageSize: baseImage.size
+                    imageSize: renderSize
                 )
             }
+            
+            // Restore the graphics state
+            cgContext.restoreGState()
         }
+        
+        print("📊 MenuAnnotationManager: Finished creating annotated image")
+        print("   Output image size: \(annotatedImage.size)")
+        print("   Output image scale: \(annotatedImage.scale)")
+        
+        return annotatedImage
     }
     
     // Draw annotation based on Vision-detected text location
@@ -441,6 +513,12 @@ final class MenuAnnotationManager {
             height: categorySize.height
         )
         
+        // Save graphics state before text drawing
+        cgContext.saveGState()
+        
+        // Set text drawing mode to fill for proper rendering
+        cgContext.setTextDrawingMode(.fill)
+        
         // Center-align text
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .center
@@ -453,6 +531,9 @@ final class MenuAnnotationManager {
         
         marginText.draw(in: percentageRect, withAttributes: centeredPercentageAttributes)
         categoryText.draw(in: categoryRect, withAttributes: centeredCategoryAttributes)
+        
+        // Restore graphics state
+        cgContext.restoreGState()
         
         print("📊 Drew bounding box for '\(dish.dishName)' (\(dish.marginPercentage)% - \(categoryText)) with large badge to the right")
         print("   Detected text: '\(textRegion.text)' at bounds: \(textRect)")
