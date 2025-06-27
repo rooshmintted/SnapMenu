@@ -13,6 +13,9 @@ struct SearchView: View {
     @State private var messages: [SearchMessage] = []
     @State private var isLoading = false
     
+    // AI Search Manager
+    @State var searchAIManager = SearchAIManager()
+    
     // Rotating example questions and explanations
     private let exampleQuestions: [(question: String, explanation: String)] = [
         (
@@ -218,13 +221,30 @@ struct SearchView: View {
                     MessageBubble(message: message)
                 }
                 
-                // Loading indicator
+                // Show typing indicator when loading
                 if isLoading {
                     HStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .orange))
-                        Text("Searching menus...")
-                            .foregroundColor(.gray)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 8) {
+                                Text("Menu AI is thinking")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                
+                                TypingIndicator()
+                            }
+                            .padding(12)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        
+                        Spacer()
+                    }
+                }
+                
+                if !messages.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text("Powered by OpenAI & Menu Crimes Database")
                             .font(.caption)
                     }
                     .padding()
@@ -317,17 +337,52 @@ struct SearchView: View {
         
         print("🔍 SearchView: Sending search query: \(query)")
         
-        // Simulate API call - replace with actual search implementation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            let responseMessage = SearchMessage(
-                id: UUID(),
-                content: "I found 3 restaurants that match your vibe! Unfortunately, the full search functionality is coming soon. For now, try using the camera to analyze menus directly.",
-                isUser: false,
-                timestamp: Date()
-            )
+        // Call AI search function
+        Task {
+            await searchAIManager.searchMenus(query: query)
             
-            messages.append(responseMessage)
-            isLoading = false
+            // Handle response based on search state
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                switch self.searchAIManager.searchState {
+                case .completed(let response):
+                    let responseMessage = SearchMessage(
+                        id: UUID(),
+                        content: response.answer,
+                        isUser: false,
+                        timestamp: Date()
+                    )
+                    self.messages.append(responseMessage)
+                    
+                    // Add sources if available
+                    if !response.sources.isEmpty {
+                        let sourcesText = "Sources:\n" + response.sources.prefix(3).map { source in
+                            "• \(source.restaurant) - \(source.text)"
+                        }.joined(separator: "\n")
+                        
+                        let sourcesMessage = SearchMessage(
+                            id: UUID(),
+                            content: sourcesText,
+                            isUser: false,
+                            timestamp: Date()
+                        )
+                        self.messages.append(sourcesMessage)
+                    }
+                    
+                case .error(let errorMessage):
+                    let errorResponseMessage = SearchMessage(
+                        id: UUID(),
+                        content: "Sorry, I encountered an error while searching: \(errorMessage)",
+                        isUser: false,
+                        timestamp: Date()
+                    )
+                    self.messages.append(errorResponseMessage)
+                    
+                default:
+                    break
+                }
+            }
         }
     }
 }
@@ -379,6 +434,36 @@ struct MessageBubble: View {
                 
                 Spacer()
             }
+        }
+    }
+}
+
+// MARK: - Typing Indicator Component
+struct TypingIndicator: View {
+    @State private var isAnimating = false
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(Color.gray.opacity(0.6))
+                .frame(width: 8, height: 8)
+                .scaleEffect(isAnimating ? 1.2 : 1)
+                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isAnimating)
+            
+            Circle()
+                .fill(Color.gray.opacity(0.6))
+                .frame(width: 8, height: 8)
+                .scaleEffect(isAnimating ? 1.2 : 1)
+                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true).delay(0.2), value: isAnimating)
+            
+            Circle()
+                .fill(Color.gray.opacity(0.6))
+                .frame(width: 8, height: 8)
+                .scaleEffect(isAnimating ? 1.2 : 1)
+                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true).delay(0.4), value: isAnimating)
+        }
+        .onAppear {
+            isAnimating = true
         }
     }
 }

@@ -98,3 +98,25 @@ enum MenuAnalysisState {
     case completed(MenuAnalysisResponse)
     case error(String)
 }
+
+// MARK: - Search Models
+/// Response model for AI-powered menu search
+struct SearchResponse: Codable {
+    let answer: String
+    let sources: [SearchSource]
+}
+
+struct SearchSource: Codable, Identifiable {
+    var id: String { "\(restaurant)_\(section)_\(text.hashValue)" }
+    let text: String
+    let restaurant: String
+    let section: String
+    let price: String?
+}
+
+enum SearchState {
+    case idle
+    case searching
+    case completed(SearchResponse)
+    case error(String)
+}
