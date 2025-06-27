@@ -75,10 +75,7 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.orange)
+                    HelpButton()
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {

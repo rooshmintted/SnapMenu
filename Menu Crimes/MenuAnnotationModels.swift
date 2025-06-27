@@ -430,6 +430,9 @@ final class MenuAnnotationManager {
             // Draw the base image scaled to display size
             baseImage.draw(in: CGRect(origin: .zero, size: displaySize))
             
+            // STEP 3.5: Draw explanatory header "Restaurant Dish Margins" at the top
+            drawHeaderText(on: context, imageSize: displaySize)
+            
             // STEP 4: Draw annotations with coordinates scaled to display size
             for (dish, textRegion) in matchedDishes {
                 // Scale the original image coordinates to display coordinates
@@ -481,19 +484,19 @@ final class MenuAnnotationManager {
         // Get the detected text bounding box
         let textRect = textRegion.boundingBox
         
-        // Draw a colored bounding box around the detected dish title
+        // HIDDEN: Draw a colored bounding box around the detected dish title (keeping code but not drawing)
         let borderColor = getMarginColor(for: dish.marginPercentage)
         let textColor = getTextColor(for: dish.marginPercentage)
-        cgContext.setStrokeColor(borderColor.cgColor)
-        cgContext.setLineWidth(3.0) // Thick border for visibility
+        // cgContext.setStrokeColor(borderColor.cgColor) // HIDDEN
+        // cgContext.setLineWidth(3.0) // HIDDEN
         
-        // Add some padding around the text
+        // HIDDEN: Add some padding around the text (keeping logic for positioning)
         let paddedRect = textRect.insetBy(dx: -2, dy: -2)
-        cgContext.stroke(paddedRect)
+        // cgContext.stroke(paddedRect) // HIDDEN - not drawing bounding box
         
         // Create much bigger percentage badge to the right of bounding box
         let marginText = "\(dish.marginPercentage)%"
-        let categoryText = getMarginCategory(for: dish.marginPercentage)
+        let categoryText = getMarginCategoryLabel(for: dish.marginPercentage) // Updated to use new labels
         
         // Much larger font for the percentage badge
         let percentageFont = UIFont.boldSystemFont(ofSize: 24) // Much bigger
@@ -577,7 +580,15 @@ final class MenuAnnotationManager {
         // Restore graphics state
         cgContext.restoreGState()
         
-        print("📊 Drew bounding box for '\(dish.dishName)' (\(dish.marginPercentage)% - \(categoryText)) with large badge to the right")
+        // STEP 5: Draw justification text underneath the dish title area
+        drawJustificationText(
+            for: dish,
+            below: textRect,
+            on: context,
+            imageSize: imageSize
+        )
+        
+        print("📊 Drew annotation for '\(dish.dishName)' (\(dish.marginPercentage)% - \(categoryText)) with badge and justification")
         print("   Detected text: '\(textRegion.text)' at bounds: \(textRect)")
         print("   Badge positioned at: \(badgeRect)")
         print("   Image size: \(imageSize)")
@@ -633,7 +644,7 @@ final class MenuAnnotationManager {
         }
     }
     
-    // Get margin category description
+    // Get margin category description (kept for backward compatibility)
     private func getMarginCategory(for percentage: Int) -> String {
         switch percentage {
         case 75...:
@@ -642,6 +653,18 @@ final class MenuAnnotationManager {
             return "High"       // Orange - medium margins  
         default: // <65%
             return "Good"       // Green - good margins
+        }
+    }
+    
+    // Get margin category label for annotations (updated labels)
+    private func getMarginCategoryLabel(for percentage: Int) -> String {
+        switch percentage {
+        case 75...:
+            return "High Margin Item"  // Red - bad margins
+        case 65...74:
+            return "Med. Margin Item"  // Orange - medium margins  
+        default: // <65%
+            return "Low Margin Item"   // Green - good margins
         }
     }
     
@@ -689,6 +712,123 @@ final class MenuAnnotationManager {
     private func drawWrappedText(text: String, in rect: CGRect, attributes: [NSAttributedString.Key: Any]) {
         let attributedString = NSAttributedString(string: text, attributes: attributes)
         attributedString.draw(in: rect)
+    }
+    
+    // MARK: - Header and Justification Text Drawing
+    
+    /// Draw explanatory header text at the top of the image
+    private func drawHeaderText(on context: UIGraphicsImageRendererContext, imageSize: CGSize) {
+        let cgContext = context.cgContext
+        
+        // Header text setup
+        let headerText = "Restaurant Dish Margins"
+        let headerFont = UIFont.boldSystemFont(ofSize: 28)
+        let headerColor = UIColor.black
+        
+        let headerAttributes: [NSAttributedString.Key: Any] = [
+            .font: headerFont,
+            .foregroundColor: headerColor
+        ]
+        
+        let headerSize = headerText.size(withAttributes: headerAttributes)
+        
+        // Position header at top center with some margin
+        let headerRect = CGRect(
+            x: (imageSize.width - headerSize.width) / 2,
+            y: 20, // Top margin
+            width: headerSize.width,
+            height: headerSize.height
+        )
+        
+        // Draw white background for header text
+        cgContext.setFillColor(UIColor.white.withAlphaComponent(0.9).cgColor)
+        let headerBackground = CGRect(
+            x: headerRect.minX - 10,
+            y: headerRect.minY - 5,
+            width: headerRect.width + 20,
+            height: headerRect.height + 10
+        )
+        let roundedHeaderBg = UIBezierPath(roundedRect: headerBackground, cornerRadius: 8)
+        cgContext.addPath(roundedHeaderBg.cgPath)
+        cgContext.fillPath()
+        
+        // Draw header text
+        cgContext.saveGState()
+        cgContext.setTextDrawingMode(.fill)
+        headerText.draw(in: headerRect, withAttributes: headerAttributes)
+        cgContext.restoreGState()
+        
+        print("📊 Drew header text: '\(headerText)' at position: \(headerRect)")
+    }
+    
+    /// Draw justification text underneath the dish title area
+    private func drawJustificationText(
+        for dish: DishAnalysis,
+        below textRect: CGRect,
+        on context: UIGraphicsImageRendererContext,
+        imageSize: CGSize
+    ) {
+        let cgContext = context.cgContext
+        
+        // Justification text setup - small but readable
+        let justificationFont = UIFont.systemFont(ofSize: 11)
+        let justificationColor = UIColor.black
+        
+        let justificationAttributes: [NSAttributedString.Key: Any] = [
+            .font: justificationFont,
+            .foregroundColor: justificationColor
+        ]
+        
+        // Wrap the justification text to fit within a reasonable width
+        let maxWidth: CGFloat = min(300, imageSize.width * 0.6) // Max 60% of image width or 300pts
+        let wrappedJustification = wrapText(dish.justification, maxWidth: maxWidth)
+        
+        let justificationSize = calculateTextSize(
+            text: wrappedJustification,
+            attributes: justificationAttributes,
+            maxWidth: maxWidth
+        )
+        
+        // Position justification text below the dish title area
+        let justificationRect = CGRect(
+            x: textRect.minX, // Align with left edge of dish title
+            y: textRect.maxY + 5, // Small gap below the dish title
+            width: min(justificationSize.width, maxWidth),
+            height: justificationSize.height
+        )
+        
+        // Ensure justification doesn't go off the image
+        let adjustedRect = CGRect(
+            x: min(justificationRect.minX, imageSize.width - justificationRect.width - 10),
+            y: min(justificationRect.minY, imageSize.height - justificationRect.height - 10),
+            width: justificationRect.width,
+            height: justificationRect.height
+        )
+        
+        // Draw semi-transparent white background for justification text
+        cgContext.setFillColor(UIColor.white.withAlphaComponent(0.85).cgColor)
+        let justificationBackground = CGRect(
+            x: adjustedRect.minX - 4,
+            y: adjustedRect.minY - 3,
+            width: adjustedRect.width + 8,
+            height: adjustedRect.height + 6
+        )
+        let roundedJustificationBg = UIBezierPath(roundedRect: justificationBackground, cornerRadius: 6)
+        cgContext.addPath(roundedJustificationBg.cgPath)
+        cgContext.fillPath()
+        
+        // Draw justification text
+        cgContext.saveGState()
+        cgContext.setTextDrawingMode(.fill)
+        drawWrappedText(
+            text: wrappedJustification,
+            in: adjustedRect,
+            attributes: justificationAttributes
+        )
+        cgContext.restoreGState()
+        
+        print("📊 Drew justification for '\(dish.dishName)': '\(wrappedJustification.prefix(50))...'") 
+        print("   Justification positioned at: \(adjustedRect)")
     }
     
     // Reset annotation state

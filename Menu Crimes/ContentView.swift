@@ -17,6 +17,7 @@ struct ContentView: View {
     let galleryManager = PhotoGalleryManager()
     let menuAnalysisManager = MenuAnalysisManager()
     let menuAnnotationManager = MenuAnnotationManager()
+    let onboardingManager = OnboardingManager()
     
     var body: some View {
         Group {
@@ -26,17 +27,25 @@ struct ContentView: View {
             case .unauthenticated, .error:
                 AuthContainerView(authManager: authManager)
             case .authenticated:
-                AuthenticatedMainView(
-                    authManager: authManager,
-                    cameraManager: cameraManager,
-                    galleryManager: galleryManager,
-                    menuAnalysisManager: menuAnalysisManager,
-                    menuAnnotationManager: menuAnnotationManager
-                )
+                if !onboardingManager.hasCompletedOnboarding {
+                    // Show onboarding on first launch
+                    OnboardingView {
+                        onboardingManager.markOnboardingCompleted()
+                    }
+                } else {
+                    AuthenticatedMainView(
+                        authManager: authManager,
+                        cameraManager: cameraManager,
+                        galleryManager: galleryManager,
+                        menuAnalysisManager: menuAnalysisManager,
+                        menuAnnotationManager: menuAnnotationManager
+                    )
+                }
             }
         }
         .onAppear {
             print("ContentView: App launched, checking authentication state")
+            print("🎯 ContentView: Onboarding completed: \(onboardingManager.hasCompletedOnboarding)")
         }
     }
 }
@@ -49,7 +58,7 @@ struct AuthenticatedMainView: View {
     let menuAnalysisManager: MenuAnalysisManager
     let menuAnnotationManager: MenuAnnotationManager
     
-    @State private var selectedTab = 0 // 0: Camera, 1: Search, 2: Analysis, 3: Profile
+    @State private var selectedTab = 0 // 0: Camera, 1: Search, 2: Profile
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -76,23 +85,13 @@ struct AuthenticatedMainView: View {
                     }
                     .tag(1)
                 
-                // Analysis Tab - Show user's analysis history
-                AnalysisView(
-                    currentUser: currentUser
-                )
-                    .tabItem {
-                        Image(systemName: selectedTab == 2 ? "chart.bar.fill" : "chart.bar")
-                        Text("Analysis")
-                    }
-                    .tag(2)
-                
                 // Profile Tab
                 ProfileView(authManager: authManager)
                     .tabItem {
-                        Image(systemName: selectedTab == 3 ? "person.fill" : "person")
+                        Image(systemName: selectedTab == 2 ? "person.fill" : "person")
                         Text("Profile")
                     }
-                    .tag(3)
+                    .tag(2)
             } else {
                 // Fallback when user is not authenticated
                 Text("Loading...")

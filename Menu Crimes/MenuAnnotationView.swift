@@ -102,10 +102,15 @@ struct MenuAnnotationView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Share") {
+                    Button(action: {
                         shareAnnotatedImage()
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.white)
+                            .font(.title3)
                     }
-                    .foregroundColor(.white)
+                    .disabled(annotationManager.annotatedImageData == nil)
+                    .opacity(annotationManager.annotatedImageData == nil ? 0.5 : 1.0)
                 }
             }
         }
@@ -118,27 +123,71 @@ struct MenuAnnotationView: View {
     }
     
     private func shareAnnotatedImage() {
+        // Debug: Check if we have an annotated image to share
         guard let imageData = annotationManager.annotatedImageData,
               let image = UIImage(data: imageData) else {
+            print("❌ MenuAnnotationView: No annotated image available for sharing")
             return
         }
         
-        let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
+        print("📊 MenuAnnotationView: Preparing to share annotated menu image")
         
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first else {
-            return
-        }
+        // Create activity items - include both the image and a descriptive title
+        let shareTitle = "Menu Analysis - Restaurant Dish Margins"
+        let activityItems: [Any] = [image, shareTitle]
         
+        // Create UIActivityViewController with comprehensive sharing options
+        let activityVC = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        
+        // Configure activity types to exclude (if any)
+        // Uncomment the line below if you want to exclude certain sharing options
+        // activityVC.excludedActivityTypes = [.addToReadingList, .assignToContact]
+        
+        // Handle iPad popover presentation
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = window
-            popover.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
+            // Try to get the share button's view for better popover positioning
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                popover.sourceView = window
+                // Position popover in the top-right area where the share button is
+                let buttonRect = CGRect(
+                    x: window.bounds.maxX - 60,
+                    y: window.safeAreaInsets.top + 44,
+                    width: 44,
+                    height: 44
+                )
+                popover.sourceRect = buttonRect
+                popover.permittedArrowDirections = [.up]
+                
+                print("📊 MenuAnnotationView: Configured iPad popover presentation")
+            } else {
+                // Fallback positioning
+                popover.sourceView = nil
+                popover.sourceRect = CGRect(x: 0, y: 0, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
         }
         
-        window.rootViewController?.present(activityVC, animated: true)
-        
-        print("📊 MenuAnnotationView: Sharing annotated menu analysis image")
+        // Present the activity view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootViewController = window.rootViewController {
+            
+            // Find the top-most presented view controller
+            var topViewController = rootViewController
+            while let presented = topViewController.presentedViewController {
+                topViewController = presented
+            }
+            
+            topViewController.present(activityVC, animated: true) {
+                print("✅ MenuAnnotationView: Successfully presented share sheet")
+            }
+        } else {
+            print("❌ MenuAnnotationView: Could not find root view controller for presenting share sheet")
+        }
     }
 }
 
