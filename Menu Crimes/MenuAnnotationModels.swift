@@ -259,7 +259,9 @@ final class MenuAnnotationManager {
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = false
             
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            // Pass the image orientation to Vision so it detects in the same coordinate system as UIImage drawing
+            let orientation = cgImagePropertyOrientation(from: image.imageOrientation)
+            let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
             do {
                 try handler.perform([request])
             } catch {
@@ -378,19 +380,46 @@ final class MenuAnnotationManager {
             return baseImage
         }
         
-        // Use the UIImage size for rendering (accounts for orientation and scale)
-        let renderSize = baseImage.size
-        let pixelSize = CGSize(width: cgImage.width, height: cgImage.height)
+        // STEP 1: Determine how the image will be displayed in SwiftUI
+        // SwiftUI constrains to screen bounds with aspect ratio preservation
+        let maxDisplayWidth = UIScreen.main.bounds.width * 1.5
+        let maxDisplayHeight = UIScreen.main.bounds.height * 1.5
         
-        print("   Render size: \(renderSize)")
-        print("   Pixel size: \(pixelSize)")
+        let originalSize = baseImage.size
+        let aspectRatio = originalSize.width / originalSize.height
         
-        // Create renderer with the same format as the original image
+        // Calculate the actual display size (how SwiftUI will size the image)
+        var displaySize: CGSize
+        if originalSize.width > maxDisplayWidth || originalSize.height > maxDisplayHeight {
+            // Image needs to be scaled down to fit
+            if aspectRatio > (maxDisplayWidth / maxDisplayHeight) {
+                // Width is the limiting factor
+                displaySize = CGSize(width: maxDisplayWidth, height: maxDisplayWidth / aspectRatio)
+            } else {
+                // Height is the limiting factor
+                displaySize = CGSize(width: maxDisplayHeight * aspectRatio, height: maxDisplayHeight)
+            }
+        } else {
+            // Image fits within bounds, use original size
+            displaySize = originalSize
+        }
+        
+        print("   Original size: \(originalSize)")
+        print("   Display size: \(displaySize)")
+        print("   Max display bounds: \(maxDisplayWidth) x \(maxDisplayHeight)")
+        
+        // STEP 2: Calculate scaling factor from original to display coordinates
+        let scaleX = displaySize.width / originalSize.width
+        let scaleY = displaySize.height / originalSize.height
+        
+        print("   Coordinate scaling: x=\(scaleX), y=\(scaleY)")
+        
+        // STEP 3: Create the annotated image at display size
         let format = UIGraphicsImageRendererFormat()
-        format.scale = baseImage.scale
+        format.scale = 1.0  // Use 1.0 scale for display rendering
         format.opaque = false
         
-        let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
+        let renderer = UIGraphicsImageRenderer(size: displaySize, format: format)
         
         let annotatedImage = renderer.image { context in
             let cgContext = context.cgContext
@@ -398,21 +427,34 @@ final class MenuAnnotationManager {
             // Save the current graphics state
             cgContext.saveGState()
             
-            // Draw the base image in its natural orientation and size
-            baseImage.draw(in: CGRect(origin: .zero, size: renderSize))
+            // Draw the base image scaled to display size
+            baseImage.draw(in: CGRect(origin: .zero, size: displaySize))
             
-            // Add annotations for each matched dish
-            // No coordinate scaling needed since coordinates are already in UIImage space
+            // STEP 4: Draw annotations with coordinates scaled to display size
             for (dish, textRegion) in matchedDishes {
-                print("📍 Drawing annotation for '\(dish.dishName)')")
-                print("   UIImage coordinate bounds: \(textRegion.boundingBox)")
-                print("   Render size: \(renderSize)")
+                // Scale the original image coordinates to display coordinates
+                let scaledBounds = CGRect(
+                    x: textRegion.boundingBox.origin.x * scaleX,
+                    y: textRegion.boundingBox.origin.y * scaleY,
+                    width: textRegion.boundingBox.size.width * scaleX,
+                    height: textRegion.boundingBox.size.height * scaleY
+                )
+                
+                let scaledRegion = DetectedTextRegion(
+                    text: textRegion.text,
+                    boundingBox: scaledBounds,
+                    confidence: textRegion.confidence
+                )
+                
+                print("📍 Drawing annotation for '\(dish.dishName)'")
+                print("   Original bounds: \(textRegion.boundingBox)")
+                print("   Display bounds: \(scaledBounds)")
                 
                 drawVisionBasedAnnotation(
                     for: dish,
-                    at: textRegion,
+                    at: scaledRegion,
                     on: context,
-                    imageSize: renderSize
+                    imageSize: displaySize
                 )
             }
             
@@ -564,6 +606,30 @@ final class MenuAnnotationManager {
             return UIColor.white // Orange background
         default: // <65%
             return UIColor.white // Green background
+        }
+    }
+    
+    // Helper function to convert UIImage orientation to CGImagePropertyOrientation
+    private func cgImagePropertyOrientation(from uiOrientation: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch uiOrientation {
+        case .up:
+            return .up
+        case .down:
+            return .down
+        case .left:
+            return .left
+        case .right:
+            return .right
+        case .upMirrored:
+            return .upMirrored
+        case .downMirrored:
+            return .downMirrored
+        case .leftMirrored:
+            return .leftMirrored
+        case .rightMirrored:
+            return .rightMirrored
+        @unknown default:
+            return .up
         }
     }
     

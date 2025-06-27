@@ -253,8 +253,7 @@ struct MenuAnalysisResultView: View {
                         ScrollView([.horizontal, .vertical]) {
                             Image(uiImage: annotatedImage)
                                 .resizable()
-                                .aspectRatio(contentMode: .fit) 
-                                .frame(maxWidth: UIScreen.main.bounds.width * 1.5, maxHeight: UIScreen.main.bounds.height * 1.5)
+                                .aspectRatio(contentMode: .fit)
                                 .padding()
                         }
                     }
