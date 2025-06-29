@@ -492,7 +492,6 @@ struct SourceCard: View {
                 Text(source.text)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .lineLimit(2)
                 
                 if let price = source.price {
                     Text(price)
