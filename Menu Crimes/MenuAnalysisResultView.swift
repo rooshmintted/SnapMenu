@@ -109,18 +109,30 @@ struct MenuAnalysisResultView: View {
                                             .foregroundColor(.gray)
                                     }
                                     
-                                    // Overall notes
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Analysis Summary")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
+                                    // Premium Analysis Summary
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "sparkles")
+                                                .font(.system(size: 18, weight: .medium))
+                                                .foregroundColor(.orange)
+                                            
+                                            Text("AI Analysis Summary")
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
                                         
                                         Text(response.analysis.overall_notes)
-                                            .font(.body)
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.2)))
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                            .padding(16)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(Color.gray.opacity(0.1))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 12)
+                                                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
                                     }
                                     
                                     // Analyzed dishes with selection
@@ -163,38 +175,46 @@ struct MenuAnalysisResultView: View {
                                                 )
                                             }
                                             
-                                            // Annotate Menu button
+                                            // Premium Annotate Menu button
                                             if !selectedDishes.isEmpty {
                                                 Button(action: {
                                                     print("📊 MenuAnalysisResultView: Annotate Menu button tapped with \(selectedDishes.count) selected dishes")
                                                     // Generate annotations directly
                                                     generateAnnotationsDirectly(response: response)
                                                 }) {
-                                                    HStack {
+                                                    HStack(spacing: 12) {
                                                         if isLoadingAnnotations {
                                                             ProgressView()
                                                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                                                .scaleEffect(0.8)
+                                                                .scaleEffect(0.9)
                                                         } else {
-                                                            Image(systemName: "doc.text.image")
+                                                            Image(systemName: "wand.and.stars")
+                                                                .font(.system(size: 16, weight: .medium))
                                                         }
-                                                        Text(isLoadingAnnotations ? "Generating..." : "Generate Annotated Menu")
-                                                            .font(.headline)
+                                                        Text(isLoadingAnnotations ? "Creating Annotations..." : "Annotate with AI")
+                                                            .font(.system(size: 16, weight: .semibold))
                                                     }
                                                     .foregroundColor(.white)
                                                     .frame(maxWidth: .infinity)
-                                                    .padding()
+                                                    .padding(.vertical, 16)
                                                     .background(
+                                                        isLoadingAnnotations ?
                                                         LinearGradient(
-                                                            gradient: Gradient(colors: [.orange, .red]),
+                                                            colors: [.gray.opacity(0.8), .gray],
+                                                            startPoint: .leading,
+                                                            endPoint: .trailing
+                                                        ) :
+                                                        LinearGradient(
+                                                            colors: [.orange, .red],
                                                             startPoint: .leading,
                                                             endPoint: .trailing
                                                         )
                                                     )
-                                                    .cornerRadius(12)
+                                                    .cornerRadius(16)
                                                 }
                                                 .disabled(isLoadingAnnotations)
-                                                .padding(.top, 8)
+                                                .scaleEffect(isLoadingAnnotations ? 0.98 : 1.0)
+                                                .animation(.easeInOut(duration: 0.1), value: isLoadingAnnotations)
                                             }
                                         }
                                     }
@@ -234,15 +254,17 @@ struct MenuAnalysisResultView: View {
                     }
                 }
             }
-            .navigationTitle("Menu Analysis")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: Button("Done") {
-                    print("📊 MenuAnalysisResultView: Done button tapped")
-                    menuAnalysisManager.resetAnalysisState()
-                    onDone()
+            .navigationTitle("Menu AI Analysis")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        onDone()
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                 }
-            )
+            }
         }
         .sheet(isPresented: $showingAnnotation) {
             if let annotatedImage = generatedAnnotations {
@@ -649,13 +671,23 @@ struct RestaurantNameInputView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "building.2")
-                    .foregroundColor(.blue)
-                    .font(.title3)
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "building.2")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                }
                 
-                Text("Restaurant Name")
-                    .font(.headline)
+                Text("Restaurant Information")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                 
                 Spacer()
@@ -663,7 +695,7 @@ struct RestaurantNameInputView: View {
                 if !restaurantName.isEmpty {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
-                        .font(.title3)
+                        .font(.system(size: 20, weight: .medium))
                 }
             }
             
@@ -684,16 +716,28 @@ struct RestaurantNameInputView: View {
                         }
                     }
                 
-                Text("This helps organize menu data for AI-powered search and recommendations")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                Text("Enhance AI search accuracy by providing restaurant context")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.gray.opacity(0.1)))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(restaurantName.isEmpty ? Color.gray.opacity(0.3) : Color.blue, lineWidth: 1)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.gray.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            restaurantName.isEmpty ? 
+                            AnyShapeStyle(Color.gray.opacity(0.3)) : 
+                            AnyShapeStyle(LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )),
+                            lineWidth: restaurantName.isEmpty ? 1 : 2
+                        )
+                )
         )
     }
     

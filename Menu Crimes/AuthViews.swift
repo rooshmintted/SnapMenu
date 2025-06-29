@@ -8,6 +8,7 @@
 import SwiftUI
 
 // MARK: - Authentication Container View
+/// Main authentication container with consistent design system
 struct AuthContainerView: View {
     let authManager: AuthManager
     
@@ -29,21 +30,39 @@ struct AuthContainerView: View {
 }
 
 // MARK: - Loading View
+/// Premium loading screen with brand consistency
 struct LoadingView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "fork.knife.circle")
-                .font(.system(size: 60))
-                .foregroundColor(.orange)
-                .symbolEffect(.pulse, options: .repeating)
+        VStack(spacing: 24) {
+            // Brand icon with gradient background
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [.orange, .red],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: "fork.knife.circle")
+                    .font(.system(size: 50, weight: .medium))
+                    .foregroundColor(.white)
+            }
+            .symbolEffect(.pulse, options: .repeating)
             
-            Text("Menu Crimes")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.orange)
+            VStack(spacing: 8) {
+                Text("Menu AI")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                Text("Discover restaurants with intelligence")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
             
             ProgressView()
                 .scaleEffect(1.2)
+                .tint(.orange)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.ignoresSafeArea())
@@ -61,86 +80,117 @@ struct SignInView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
-                // App Logo and Title
-                VStack(spacing: 15) {
-                    Image(systemName: "fork.knife.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.orange)
-                    
-                    Text("Menu Crimes")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("Analyze menus, share with friends")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                .padding(.top, 50)
-                
-                // Sign In Form
+            VStack(spacing: 40) {
+                // Premium branding section
                 VStack(spacing: 20) {
-                    VStack(spacing: 15) {
+                    // Brand icon with gradient
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 120, height: 120)
+                        
+                        Image(systemName: "fork.knife.circle")
+                            .font(.system(size: 60, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    
+                    VStack(spacing: 8) {
+                        Text("Menu AI")
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                        
+                        Text("Discover restaurants with intelligence")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(.top, 60)
+                
+                // Modern sign in form
+                VStack(spacing: 24) {
+                    VStack(spacing: 16) {
                         TextField("Email", text: $email)
-                            .textFieldStyle(AuthTextFieldStyle())
+                            .textFieldStyle(ModernTextFieldStyle())
                             .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                         
                         SecureField("Password", text: $password)
-                            .textFieldStyle(AuthTextFieldStyle())
+                            .textFieldStyle(ModernTextFieldStyle())
                     }
                     
-                    // Error Message
+                    // Error Message with better styling
                     if let errorMessage = authManager.errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                            
+                            Text(errorMessage)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.red)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(12)
                     }
                     
-                    // Sign In Button
+                    // Premium Sign In Button
                     Button(action: signIn) {
-                        if authManager.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Text("Sign In")
-                                .font(.headline)
-                                .foregroundColor(.white)
+                        HStack(spacing: 8) {
+                            if authManager.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.8)
+                            } else {
+                                Text("Sign In")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color.orange)
-                    .cornerRadius(25)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
                     .disabled(authManager.isLoading || email.isEmpty || password.isEmpty)
+                    .opacity(authManager.isLoading || email.isEmpty || password.isEmpty ? 0.6 : 1.0)
                     
-                    // Forgot Password
+                    // Forgot Password with modern styling
                     Button("Forgot Password?") {
                         showingPasswordReset = true
                     }
-                    .font(.footnote)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.orange)
                 }
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 32)
                 
                 Spacer()
                 
-                // Sign Up Option
-                VStack(spacing: 10) {
+                // Modern sign up option
+                VStack(spacing: 12) {
                     Text("Don't have an account?")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
                     
-                    Button("Sign Up") {
+                    Button("Create Account") {
                         showingSignUp = true
                     }
-                    .font(.headline)
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.orange)
                 }
-                .padding(.bottom, 30)
+                .padding(.bottom, 40)
             }
             .background(Color.black.ignoresSafeArea())
         }
@@ -172,12 +222,19 @@ struct SignUpView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 25) {
-                Text("Create Account")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.top, 20)
+            VStack(spacing: 32) {
+                // Premium header
+                VStack(spacing: 12) {
+                    Text("Join Menu AI")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    Text("Start discovering restaurants with intelligence")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 32)
                 
                 VStack(spacing: 15) {
                     TextField("Username", text: $username)
@@ -357,34 +414,59 @@ struct PasswordResetView: View {
 }
 
 // MARK: - Custom Text Field Style
-struct AuthTextFieldStyle: TextFieldStyle {
+// MARK: - Modern Text Field Style
+/// Premium text field design consistent with search interface
+struct ModernTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding(.horizontal, 20)
-            .padding(.vertical, 15)
+            .padding(.vertical, 16)
             .background(Color.gray.opacity(0.1))
             .foregroundColor(.white)
-            .cornerRadius(10)
+            .cornerRadius(14)
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
             )
+            .font(.system(size: 16, weight: .medium))
+    }
+}
+
+// Legacy style maintained for compatibility
+struct AuthTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .textFieldStyle(ModernTextFieldStyle())
     }
 }
 
 // MARK: - Custom Button Style
-struct AuthButtonStyle: ButtonStyle {
+// MARK: - Modern Button Style
+/// Premium button design with gradient and proper states
+struct ModernButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .padding(.horizontal, 20)
-            .padding(.vertical, 15)
-            .background(Color.orange)
-            .foregroundColor(.white)
-            .cornerRadius(25)
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(
+                    colors: [.orange, .red],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
             )
+            .foregroundColor(.white)
+            .cornerRadius(16)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// Legacy style maintained for compatibility
+struct AuthButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        ModernButtonStyle().makeBody(configuration: configuration)
     }
 }
 

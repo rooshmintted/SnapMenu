@@ -15,47 +15,87 @@ struct MenuAnnotationView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
                 
                 if annotationManager.isLoading {
-                    // Loading state
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
+                    // Premium loading state
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 100, height: 100)
+                                .opacity(0.2)
+                            
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                                .scaleEffect(1.8)
+                        }
                         
-                        Text("Generating Menu Analysis...")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        
-                        Text("Using Apple Vision to detect dishes and annotate margins")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
+                        VStack(spacing: 12) {
+                            Text("Generating AI Analysis")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                            
+                            Text("Using Apple Vision to detect dishes and annotate profit margins")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                        }
                     }
                 } else if let error = annotationManager.error {
-                    // Error state
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 50))
-                            .foregroundColor(.red)
+                    // Premium error state
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.red.opacity(0.15))
+                                .frame(width: 100, height: 100)
+                            
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 50, weight: .medium))
+                                .foregroundColor(.red)
+                        }
                         
-                        Text("Analysis Failed")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                        VStack(spacing: 12) {
+                            Text("Analysis Failed")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                            
+                            Text(error)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                        }
                         
-                        Text(error)
-                            .font(.body)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        Button("Try Again") {
+                        Button(action: {
                             Task {
                                 await annotationManager.generateAnnotatedImage()
                             }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Try Again")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(16)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .padding(.horizontal, 24)
                     }
                     .padding()
                 } else if let imageData = annotationManager.annotatedImageData,
@@ -63,52 +103,79 @@ struct MenuAnnotationView: View {
                     // Show annotated image with basic zoom/pan
                     FullScreenImageView(image: uiImage)
                 } else {
-                    // Initial state
-                    VStack(spacing: 20) {
-                        Image(systemName: "chart.bar.doc.horizontal")
-                            .font(.system(size: 50))
-                            .foregroundColor(.white)
+                    // Premium initial state
+                    VStack(spacing: 32) {
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 60, weight: .medium))
+                                .foregroundColor(.white)
+                        }
                         
-                        Text("Menu Analysis Ready")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                        VStack(spacing: 16) {
+                            Text("AI Analysis Ready")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                            
+                            Text("Tap 'Generate Analysis' to detect dishes and annotate with intelligent profit margin insights")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                        }
                         
-                        Text("Tap 'Generate Analysis' to detect dishes and annotate with intelligent margin analysis")
-                            .font(.body)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        Button("Generate Analysis") {
+                        Button(action: {
                             Task {
                                 await annotationManager.generateAnnotatedImage()
                             }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "wand.and.stars")
+                                    .font(.system(size: 18, weight: .medium))
+                                Text("Generate Analysis")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.vertical, 18)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(16)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .padding(.horizontal, 24)
                     }
                     .padding()
                 }
             }
-            .navigationTitle("Menu Analysis")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Menu AI Analysis")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
                     }
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
+                    Button("Share") {
                         shareAnnotatedImage()
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.white)
-                            .font(.title3)
                     }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
                     .disabled(annotationManager.annotatedImageData == nil)
                     .opacity(annotationManager.annotatedImageData == nil ? 0.5 : 1.0)
                 }

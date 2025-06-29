@@ -956,8 +956,3 @@ struct MockAnalysisBreakdown: View {
     }
 }
 
-#Preview("Help Button") {
-    NavigationView {
-        HelpButton()
-    }
-}

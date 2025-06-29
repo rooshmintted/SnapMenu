@@ -21,46 +21,67 @@ struct AnalysisView: View {
             VStack(spacing: 24) {
                 Spacer()
                 
-                // Main content
-                VStack(spacing: 16) {
-                    Image(systemName: "chart.bar.doc.horizontal")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+                // Premium main content
+                VStack(spacing: 24) {
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [.orange, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 120, height: 120)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 60, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                     
-                    Text("Menu Analysis")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Analyze menu photos to discover profit margins and pricing insights")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    VStack(spacing: 12) {
+                        Text("Menu AI Analysis")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        
+                        Text("Discover hidden profit margins, analyze pricing strategies, and unlock menu intelligence with AI-powered insights.")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                    }
                 }
                 
                 Spacer()
                 
-                // Action button
+                // Premium action button
                 Button {
                     print("📊 AnalysisView: Opening menu annotation tool")
                     showingMenuAnnotation = true
                 } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Open Menu Analysis Tool")
+                    HStack(spacing: 12) {
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 18, weight: .medium))
+                        Text("Start AI Analysis")
+                            .font(.system(size: 18, weight: .semibold))
                     }
-                    .font(.headline)
                     .foregroundColor(.white)
-                    .padding()
+                    .padding(.vertical, 16)
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(12)
+                    .background(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
+                .scaleEffect(1.0)
+                .animation(.easeInOut(duration: 0.1), value: showingMenuAnnotation)
                 
                 Spacer()
             }
-            .navigationTitle("Analysis")
+            .navigationTitle("Menu Analysis")
         }
         .sheet(isPresented: $showingMenuAnnotation) {
             MenuAnnotationView(annotationManager: menuAnnotationManager)

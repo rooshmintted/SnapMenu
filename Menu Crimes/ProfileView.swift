@@ -12,6 +12,20 @@ struct ProfileView: View {
     let statsManager: StatsManager
     @State private var showingSignOutAlert = false
     @State private var showingOnboarding = false // Added for help button functionality
+    @State private var editingProfile = false // Added for profile editing functionality
+    
+    // Computed properties to simplify complex expressions
+    private var milestoneProgress: Double {
+        statsManager.getMilestoneProgress().progress
+    }
+    
+    private var progressBarWidth: CGFloat {
+        max(0, CGFloat(milestoneProgress) * UIScreen.main.bounds.width * 0.8)
+    }
+    
+    private var progressPercentage: Int {
+        Int(milestoneProgress * 100)
+    }
     
     var body: some View {
         ScrollView {
@@ -23,271 +37,378 @@ struct ProfileView: View {
                             .font(.title3)
                             .foregroundColor(.secondary)
                         
-                        Text("@\(authManager.authState.currentUser?.username ?? "user")")
-                            .font(.title)
-                            .fontWeight(.bold)
+                        if let currentUser = authManager.authState.currentUser {
+                            Text("@\(currentUser.username)")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                        }
                     }
                     
                     Spacer()
                     
-                    // Help button - shows onboarding when tapped
-                    Button {
-                        print("Help button tapped - showing onboarding") // Debug log
+                    // Help button
+                    Button(action: {
+                        print("🎯 ProfileView: Help button tapped - showing onboarding")
                         showingOnboarding = true
-                    } label: {
-                        Image(systemName: "questionmark.circle")
-                            .font(.title2)
+                    }) {
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 24, weight: .medium))
                             .foregroundColor(.orange)
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
-                // Gamified Stats Cards
-                VStack(spacing: 16) {
-                    // Menu Detective Badge
-                    VStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass.circle.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(.orange)
-                        
-                        Text("Menu Detective")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        Text("Keep analyzing menus to unlock new badges!")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(24)
-                    .background {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.orange.opacity(0.1))
-                            .stroke(.orange.opacity(0.3), lineWidth: 1)
-                    }
-                    
-                    // Stats Grid
-                    HStack(spacing: 16) {
-                        // Menus Submitted
-                        StatsCard(
-                            title: "Menus\nSubmitted",
-                            value: "\(statsManager.menusSubmitted)",
-                            icon: "camera.fill",
-                            color: .blue,
-                            description: "Photos uploaded"
-                        )
-                        
-                        // Dishes Analyzed
-                        StatsCard(
-                            title: "Dishes\nAnalyzed",
-                            value: "\(statsManager.dishesAnalyzed)",
-                            icon: "fork.knife",
-                            color: .green,
-                            description: "Items reviewed"
-                        )
-                    }
-                    
-                    // Progress to next milestone
-                    VStack(alignment: .leading, spacing: 12) {
-                        let milestone = statsManager.getMilestoneProgress()
-                        
+                // Modern Stats Section
+                VStack(spacing: 20) {
                         HStack {
-                            Text("Next Milestone")
-                                .font(.headline)
+                            Text("Your Analytics")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
                             Spacer()
-                            Text("\(milestone.current)/\(milestone.target)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
                         }
                         
-                        ProgressView(value: milestone.progress)
-                            .progressViewStyle(LinearProgressViewStyle(tint: .orange))
-                        
-                        Text("\(milestone.target - milestone.current) more menus to unlock the next milestone")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        // Premium Stats Cards
+                        VStack(spacing: 16) {
+                            HStack(spacing: 16) {
+                                ModernStatsCard(
+                                    title: "Menus Analyzed",
+                                    value: "\(statsManager.menusSubmitted)",
+                                    icon: "camera.fill",
+                                    color: .orange
+                                )
+                                
+                                ModernStatsCard(
+                                    title: "Dishes Discovered",
+                                    value: "\(statsManager.dishesAnalyzed)",
+                                    icon: "fork.knife",
+                                    color: .blue
+                                )
+                            }
+                            
+                            // Premium Progress Section
+                            VStack(spacing: 16) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Progress to Menu Master")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                        Text("\(progressPercentage)% complete")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    
+                                    ZStack {
+                                        Circle()
+                                            .stroke(Color.gray.opacity(0.2), lineWidth: 3)
+                                            .frame(width: 50, height: 50)
+                                        
+                                        Circle()
+                                            .trim(from: 0, to: CGFloat(milestoneProgress))
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [.orange, .red],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                                            )
+                                            .frame(width: 50, height: 50)
+                                            .rotationEffect(.degrees(-90))
+                                    }
+                                }
+                                
+                                // Modern progress bar
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 8)
+                                    
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [.orange, .red],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .frame(width: progressBarWidth, height: 8)
+                                }
+                            }
+                            .padding(20)
+                            .background(Color.gray.opacity(0.05))
+                            .cornerRadius(16)
+                        }
                     }
-                    .padding(20)
-                    .background {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemGray6))
-                    }
+                    .padding(.horizontal, 20)
                     
-                    // Achievements Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Recent Achievements")
-                            .font(.headline)
-                            .padding(.horizontal, 24)
+                    // Premium Achievements Section
+                    VStack(spacing: 20) {
+                        HStack {
+                            Text("Achievements")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                            Spacer()
+                        }
                         
                         VStack(spacing: 12) {
                             let achievements = statsManager.getAchievementStatus()
                             
-                            AchievementRow(
-                                icon: "camera.badge.ellipsis",
+                            ModernAchievementRow(
                                 title: "First Menu",
-                                description: "Uploaded your first menu photo",
-                                isUnlocked: achievements["first_menu"] ?? false
+                                description: "Analyzed your first menu",
+                                isUnlocked: achievements["first_menu"] ?? false,
+                                icon: "camera.fill",
+                                color: .green
                             )
                             
-                            AchievementRow(
-                                icon: "magnifyingglass.circle",
+                            ModernAchievementRow(
                                 title: "Menu Explorer",
                                 description: "Analyzed 10 menus",
-                                isUnlocked: achievements["menu_explorer"] ?? false
+                                isUnlocked: achievements["menu_explorer"] ?? false,
+                                icon: "map.fill",
+                                color: .blue
                             )
                             
-                            AchievementRow(
-                                icon: "fork.knife.circle",
+                            ModernAchievementRow(
                                 title: "Dish Detective",
                                 description: "Analyzed 50 dishes",
-                                isUnlocked: achievements["dish_detective"] ?? false
+                                isUnlocked: achievements["dish_detective"] ?? false,
+                                icon: "magnifyingglass",
+                                color: .purple
                             )
                             
-                            AchievementRow(
-                                icon: "star.circle",
+                            ModernAchievementRow(
                                 title: "Menu Master",
-                                description: "Submit 25 menus",
-                                isUnlocked: achievements["menu_master"] ?? false
+                                description: "Analyzed 25 menus",
+                                isUnlocked: achievements["menu_master"] ?? false,
+                                icon: "crown.fill",
+                                color: .orange
                             )
                         }
-                        .padding(.horizontal, 24)
                     }
+                    .padding(.horizontal, 20)
+                    
+                    // Premium Help Section
+                    VStack(spacing: 16) {
+                        HStack {
+                            Text("Get Started")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                            Spacer()
+                        }
+                        
+                        Button(action: {
+                            print("🎯 ProfileView: Help button tapped - showing onboarding")
+                            showingOnboarding = true
+                        }) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(LinearGradient(
+                                            colors: [.orange, .red],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.system(size: 20, weight: .medium))
+                                        .foregroundColor(.white)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("How to Use Menu AI")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("Learn about menu analysis and discovery")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(20)
+                            .background(Color.gray.opacity(0.05))
+                            .cornerRadius(16)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
+                    
+                    // Sign Out Button
+                    Button {
+                        showingSignOutAlert = true
+                        print("Sign out button tapped") // Debug log
+                    } label: {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Sign Out")
+                        }
+                        .foregroundColor(.red)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background {
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.red.opacity(0.3), lineWidth: 1)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
                 }
-                .padding(.horizontal, 24)
-                
-                // Sign Out Button
-                Button {
-                    showingSignOutAlert = true
-                    print("Sign out button tapped") // Debug log
-                } label: {
-                    HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("Sign Out")
-                    }
-                    .foregroundColor(.red)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background {
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(.red.opacity(0.3), lineWidth: 1)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
             }
-        }
-        .background(Color(.systemBackground))
-        .alert("Sign Out", isPresented: $showingSignOutAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Sign Out", role: .destructive) {
-                Task {
-                    print("Signing out user") // Debug log
-                    await authManager.signOut()
+            .background(Color(.systemBackground))
+            .alert("Sign Out", isPresented: $showingSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    Task {
+                        print("Signing out user") // Debug log
+                        await authManager.signOut()
+                    }
                 }
+            } message: {
+                Text("Are you sure you want to sign out?")
             }
-        } message: {
-            Text("Are you sure you want to sign out?")
-        }
-        .sheet(isPresented: $showingOnboarding) {
-            // Present onboarding view when help button is tapped
-            OnboardingView {
-                // Close onboarding sheet when completed
-                showingOnboarding = false
+            .sheet(isPresented: $showingOnboarding) {
+                OnboardingView {
+                    // Handle onboarding completion
+                    print("🎯 ProfileView: Onboarding completed from help button")
+                    showingOnboarding = false
+                }
             }
         }
     }
-}
+
 
 // MARK: - Supporting Components
 
 /// Gamified stats card showing user metrics
+// MARK: - Modern Stats Card
+/// Premium stats card with enhanced visual design
+struct ModernStatsCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(color)
+            }
+            
+            VStack(spacing: 4) {
+                Text(value)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                
+                Text(title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+// Legacy compatibility wrapper
 struct StatsCard: View {
     let title: String
     let value: String
     let icon: String
     let color: Color
-    let description: String
     
     var body: some View {
-        VStack(spacing: 8) {
-            // Icon
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            // Value
-            Text(value)
-                .font(.title)
-                .fontWeight(.bold)
-            
-            // Title
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            // Description
-            Text(description)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.1))
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        }
+        ModernStatsCard(title: title, value: value, icon: icon, color: color)
     }
 }
 
 /// Achievement row showing unlocked and locked achievements
-struct AchievementRow: View {
-    let icon: String
+// MARK: - Modern Achievement Row
+/// Premium achievement display with enhanced visual feedback
+struct ModernAchievementRow: View {
     let title: String
     let description: String
     let isUnlocked: Bool
+    let icon: String
+    let color: Color
     
     var body: some View {
         HStack(spacing: 16) {
-            // Achievement icon
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(isUnlocked ? .orange : .gray)
-                .frame(width: 32, height: 32)
+            ZStack {
+                Circle()
+                    .fill(isUnlocked ? color.opacity(0.15) : Color.gray.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(isUnlocked ? color : .gray)
+            }
             
-            // Achievement details
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(isUnlocked ? .primary : .secondary)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
                 
                 Text(description)
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
             }
             
             Spacer()
             
-            // Lock/unlock indicator
-            if isUnlocked {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(.green)
-            } else {
-                Image(systemName: "lock.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(.gray)
+            ZStack {
+                Circle()
+                    .fill(isUnlocked ? Color.green.opacity(0.15) : Color.gray.opacity(0.1))
+                    .frame(width: 30, height: 30)
+                
+                Image(systemName: isUnlocked ? "checkmark" : "lock")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(isUnlocked ? .green : .gray)
             }
         }
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isUnlocked ? Color(.systemGray6) : Color(.systemGray6).opacity(0.5))
-        }
+        .padding(20)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isUnlocked ? color.opacity(0.2) : Color.gray.opacity(0.1), lineWidth: 1)
+        )
+        .scaleEffect(isUnlocked ? 1.0 : 0.98)
+        .opacity(isUnlocked ? 1.0 : 0.7)
+    }
+}
+
+// Legacy compatibility wrapper
+struct AchievementRow: View {
+    let title: String
+    let description: String
+    let isUnlocked: Bool
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        ModernAchievementRow(title: title, description: description, isUnlocked: isUnlocked, icon: icon, color: color)
     }
 }
 
