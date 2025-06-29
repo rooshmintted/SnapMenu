@@ -1,4 +1,4 @@
-# Menu Crimes - AI-Powered Menu Intelligence & Social Food Discovery 🍽️🤖
+# Ask Mr Menu - AI-Powered Menu Intelligence & Social Food Discovery 🍽️🤖
 
 **Building the worlds knowledge graph for menus one photo at a time**
 
