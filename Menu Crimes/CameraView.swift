@@ -285,7 +285,7 @@ struct PhotoPreviewView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 
-                // Photo display
+                // Photo display - shows cropped image that matches camera preview
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
