@@ -1,18 +1,17 @@
-# Ask Mr Menu - The Answer Engine for Your City’s Food Questions🍽️🤖
+# Menu Crimes - AI-Powered Menu Intelligence & Social Food Discovery 🍽️🤖
 
-**AI-Powered Restaurant Menu Search + Analysis**
+**Building the worlds knowledge graph for menus one photo at a time**
 
-Ask Mr Menu is an iOS app that combines advanced AI technology with social features to analyze restaurant menus, discover hidden gems, and share culinary experiences. Think "Perplexity AI for restaurants" with sophisticated menu analysis capabilities.
+Ask MrMenu is a comprehensive iOS app that uses cutting-edge AI technology with rich search to analyze restaurant menus and discover culinary insights. Think "Perplexity AI for restaurants".
 
 ## 🌟 Core Features
 
 ### 🧠 AI-Powered Menu Analysis
-- **Intelligent Menu Scanning**: Advanced OCR and Vision Framework integration for precise text extraction
+- **Intelligent Menu Scanning**: Advanced OCR with Apple Vision Framework for precise text extraction
 - **Profit Margin Analysis**: AI calculates estimated food costs and profit margins for each dish
-- **Interactive Annotations**: Tap on colored badges to see detailed cost breakdowns and justifications
 - **Smart Ingredient Detection**: Identifies ingredients for better search and dietary filtering
 - **Menu Embedding System**: RAG-powered vector database for intelligent menu search
-- **Restaurant Intelligence**: Comprehensive analysis with overall scoring and recommendations
+- **Parallel Processing**: Analysis and embedding run simultaneously for efficiency
 
 ### 🔍 Premium AI Search ("Menu AI")
 - **Natural Language Queries**: Ask complex questions like "Which restaurants write their menu like poetry?"
@@ -20,20 +19,20 @@ Ask Mr Menu is an iOS app that combines advanced AI technology with social featu
 - **Source Attribution**: Shows exactly which menus and dishes inform each answer
 - **Perplexity-Style Interface**: Professional chat experience with rotating example questions
 - **Vector Search**: Powered by Pinecone and OpenAI for semantic menu understanding
+- **RAG Database Integration**: Your menu uploads enhance search quality for everyone
 
-### 📸 Camera & Media Capabilities
-- **Menu Photography**: Optimized camera interface for capturing menu photos
-- **Gallery Integration**: Select existing photos for analysis
-- **Video Support**: Record and share culinary experiences
+### 📸 Advanced Camera & Media System
+- **Professional Camera Interface**: Optimized for menu photography with preview matching
+- **Photo & Video Support**: Capture both images and videos with unified sharing
+- **Gallery Integration**: Select existing media with proper permission handling
 - **Preview & Analysis**: Immediate menu analysis from captured photos
 - **High-Quality Processing**: Professional image handling with aspect ratio matching
+- **Format Conversion**: Automatic MOV to MP4 conversion for compatibility
 
-### 👥 Social & Sharing Features
-- **User Authentication**: Secure Supabase Auth integration
-- **Friend System**: Connect with other food enthusiasts
-- **Multiple Sharing**: Send analyses to multiple friends simultaneously
-- **Analysis History**: Track and revisit your menu discoveries
-- **Social Discovery**: Find friends through contacts integration
+### 📊 Profile Intelligence & Gamification
+- **Upload Tracking**: Monitor how many menus you've contributed to the system
+- **Achievement System**: Menu Detective badges and milestone tracking
+- **Contribution Stats**: Track dishes analyzed and system contributions
 
 ## Tech Stack
 
@@ -56,42 +55,56 @@ Ask Mr Menu is an iOS app that combines advanced AI technology with social featu
 
 ```
 Menu Crimes/
-├── Menu_CrimesApp.swift              # App entry point
+├── Menu_CrimesApp.swift              # App entry point with Core Data integration
 ├── ContentView.swift                 # Main tab interface (Camera, Search, Analysis, Profile)
-├── Models.swift                      # Core data models and enums
+├── Models.swift                      # Core data models, enums, and UserProfile
 ├── Supabase.swift                   # Supabase client configuration
 │
 ├── AI & Analysis/
 │   ├── MenuAnalysisManager.swift     # Core menu analysis orchestration
 │   ├── MenuAnalysisResultView.swift  # Analysis results with interactive UI
-│   ├── MenuAnnotationModels.swift    # Vision Framework integration
+│   ├── MenuAnnotationModels.swift    # Vision Framework coordinate integration
 │   ├── MenuAnnotationView.swift      # Interactive annotation display
-│   ├── MenuEmbeddingManager.swift    # RAG embedding system
-│   ├── SearchAIManager.swift         # AI-powered search functionality
+│   ├── MenuEmbeddingManager.swift    # RAG embedding system for search
+│   ├── SearchAIManager.swift         # AI-powered natural language search
 │   └── SearchView.swift             # Premium "Menu AI" search interface
 │
 ├── Camera & Media/
-│   ├── CameraManager.swift           # Camera capture and permissions
-│   ├── CameraView.swift             # Main camera interface
-│   ├── CameraPreviewView.swift      # Camera preview component
-│   ├── PhotoGalleryManager.swift    # Gallery selection and management
-│   └── ImagePicker.swift            # Photo library integration
+│   ├── CameraView.swift             # Professional camera interface
+│   ├── CameraPreviewView.swift      # Camera preview with controls
+│   ├── PhotoGalleryManager.swift    # Gallery permissions and selection
+│   ├── ImagePicker.swift            # Photo library integration
+│   └── MediaConversionManager.swift  # MOV to MP4 conversion utilities
 │
 ├── Authentication/
-│   ├── AuthManager.swift             # Supabase Auth integration
-│   ├── AuthViews.swift              # Login/signup UI components
-│   └── ProfileView.swift            # User profile management
+│   ├── AuthManager.swift             # Supabase Auth with profile management
+│   ├── AuthViews.swift              # Login/signup UI with username system
+│   └── ProfileView.swift            # Profile with stats, onboarding, sign out
 │
 ├── Social Features/
-│   └── AnalysisView.swift           # Analysis history and sharing
+│   ├── FriendManager.swift          # Friend requests, contacts, relationships
+│   ├── FriendViews.swift            # Friend list, requests, detail views
+│   ├── FriendSelectionView.swift    # Multi-friend selection for sharing
+│   ├── PhotoShareManager.swift      # Analysis sharing with auto-hide
+│   ├── AnalysisView.swift           # Received analysis viewer ("All Caught Up!")
+│   ├── StoryManager.swift           # 24-hour ephemeral stories system
+│   ├── StoryView.swift              # Story viewer with preloading
+│   ├── PollManager.swift            # Menu polls creation and voting
+│   └── PollView.swift               # Poll display and interaction
 │
-├── Database/
-│   └── sql/
-│       └── tables.sql               # Database schema with RLS
+├── Onboarding/
+│   └── OnboardingView.swift         # Enhanced 3-page onboarding flow
+│       ├── MenuAnalysisIllustration  # AI analysis demo with profit margins
+│       ├── AISearchIllustration      # Rotating questions with AI responses
+│       └── ProfileIntelligenceIllustration # RAG impact and upload tracking
 │
-└── Assets/
-    ├── menu_items.json              # Sample data for development
-    └── Sears-Menu-Breakfast-1.jpg   # Test menu image
+└── Supporting Files/
+    ├── Extensions/                   # SwiftUI extensions and utilities
+    ├── sql/                         # Complete database schema with RLS
+    │   ├── tables.sql               # Core tables with foreign keys
+    │   ├── friendship_system.sql    # Friend requests and relationships
+    │   └── stories_rls_policies.sql # Storage policies for media
+    └── Info.plist                  # Camera, contacts, photo permissions
 ```
 
 ## Key AI & Analysis Components
@@ -138,39 +151,37 @@ Menu Crimes/
 ## Database Schema
 
 ### Core Tables
-- **profiles**: User profile information
-- **friendships**: Friend relationships between users
-- **friend_requests**: Pending friend requests with status tracking
-- **shared_photos**: Shared media (photos/videos) with metadata
+- **profiles**: User profiles with username, avatar, website, and creation timestamps
+- **shared_analyses**: Analysis sharing system with view tracking and auto-hide functionality
+- **menu_embeddings**: Vector embeddings for RAG-powered semantic search
 
-### Key Features
-- Row Level Security (RLS) for data isolation
-- Automatic timestamp tracking
-- Foreign key relationships with cascade deletes
-- Performance indexes for common queries
-- Support for both photo and video media types
+### Storage Buckets
+- **menu_images**: Analysis images with public read access
+
+### Key Database Features
+- **Media Management**: Organized file structure with user-based folders
+- **Performance Optimization**: Proper indexing on frequently queried columns
 
 ## Setup Instructions
 
 ### Prerequisites
-- Xcode 15+
-- iOS 17+ target device/simulator
-- Supabase account and project
+- Xcode 15+ (iOS 17+ required for Vision Framework and @Observable pattern)
+- Supabase account with project configured
+- OpenAI API key for menu analysis and search
+- Pinecone account for vector database
 
-### Configuration
-
+### Backend Configuration
 1. **Supabase Setup**:
-   - Create a Supabase project
-   - Run the SQL files in `/sql/` folder to set up database schema
-   - Configure authentication settings
-   - Set up storage buckets: `analysis/`, `polls/`, and general media
-   - Deploy edge functions: `anaylze-menu`, `embed-menu`, `search-menus`
+   - Create new Supabase project
+   - Run SQL files in order: `tables.sql`, `friendship_system.sql`, `stories_rls_policies.sql`
+   - Configure authentication settings (email confirmation optional)
+   - Enable Row Level Security on all custom tables
 
-2. **AI Service Configuration**:
-   - **OpenAI API**: Configure API key in Supabase edge functions
+2. **AI Services Setup**:
+   - **OpenAI API**: Configure GPT-4 access for menu analysis and search
    - **Pinecone Database**: Set up vector database for menu embeddings
-   - **Edge Function Environment**: Configure AI service credentials
-   - **Storage Policies**: Enable public read access for analysis images
+   - **Edge Function Environment**: Configure AI service credentials in Supabase
+   - **Storage Policies**: Enable secure access with friend-based permissions
 
 3. **App Configuration**:
    - Update `Supabase.swift` with your Supabase URL and anon key
@@ -199,28 +210,6 @@ let supabase = SupabaseClient(
 5. **Smart Search**: Use "Menu AI" to ask natural language questions about restaurants
 6. **Analysis History**: Review your menu analysis history in the Analysis tab
 
-### Core AI Features
-
-#### Menu Analysis Workflow
-1. **Capture Menu**: Take a photo of any restaurant menu
-2. **Automatic Analysis**: AI analyzes each dish for profit margins and ingredients
-3. **Interactive Annotations**: View color-coded margin indicators overlaid on menu items
-4. **Detailed Breakdowns**: Tap any badge to see cost analysis and recommendations
-5. **Smart Recommendations**: Get AI-powered suggestions for high-value dishes
-
-#### Menu AI Search
-1. **Natural Language Queries**: Ask questions like "Best seafood restaurants with good margins"
-2. **Intelligent Responses**: Get AI-generated answers with source attribution
-3. **Restaurant Discovery**: Find restaurants based on cuisine, price, or specific dishes
-4. **Source Integration**: See actual menu excerpts supporting each recommendation
-
-#### Advanced Features
-- **Vision Framework OCR**: Precise text detection and coordinate mapping
-- **Profit Margin Calculations**: Estimated food costs vs. menu prices
-- **Interactive Annotations**: Clickable overlays with detailed justifications
-- **RAG Database**: Vector embeddings for semantic menu search
-- **Restaurant Context**: All analysis linked to specific restaurant locations
-
 ## Architecture Patterns
 
 ### State Management
@@ -241,50 +230,6 @@ let supabase = SupabaseClient(
 - **Models**: Data structures with Codable conformance
 - **Extensions**: Utility functions and view modifiers
 
-## Recent AI & Analysis Updates
-
-### Menu Analysis System
-- ✅ **OpenAI Integration**: Complete menu analysis with profit margin calculations
-- ✅ **Vision Framework OCR**: Precise text detection and coordinate mapping
-- ✅ **Interactive Annotations**: Clickable badges with detailed cost breakdowns
-- ✅ **Smart Text Matching**: Multiple matching strategies with confidence scoring
-- ✅ **Parallel Processing**: Analysis and embedding run simultaneously
-
-### AI-Powered Search ("Menu AI")
-- ✅ **Natural Language Processing**: Complex restaurant queries with context
-- ✅ **RAG Database Integration**: Vector embeddings for semantic search
-- ✅ **Source Attribution**: AI answers with specific menu sources
-- ✅ **Perplexity-Style UI**: Premium search interface with professional design
-- ✅ **Real-time Processing**: Async search with loading states
-
-### Advanced Vision & Annotation Features
-- ✅ **Coordinate System Fix**: Pixel-perfect annotation positioning
-- ✅ **Restaurant Name Integration**: Auto-extraction and user input
-- ✅ **Intelligent Chunking**: Menu sections with smart categorization
-- ✅ **Interactive Overlays**: Touch-responsive margin indicators
-- ✅ **Professional UI**: Color-coded visual hierarchy and typography
-
-### Technical Infrastructure
-- ✅ **Supabase Edge Functions**: Custom AI endpoints for analysis and search
-- ✅ **Pinecone Vector Database**: Semantic similarity matching
-- ✅ **Embedding Pipeline**: Automatic menu processing for search
-- ✅ **Error Handling**: Comprehensive fallbacks and user feedback
-- ✅ **Debug Logging**: Enhanced troubleshooting throughout AI pipeline
-
-## Development Guidelines
-
-### Code Rules Applied
-- **Debug Logging**: Comprehensive logging throughout the app for easier debugging
-- **Code Comments**: Detailed comments explaining complex logic
-- **No Duplication**: Unified components where possible (e.g., FriendSelectionView)
-- **Simple Solutions**: Prefer straightforward implementations
-- **Clean Organization**: Keep files under 200-300 lines, logical separation
-
-### Performance Considerations
-- Lazy loading for media lists
-- Efficient database queries with proper indexing
-- Image/video compression for storage optimization
-- Cached friend lists and user profiles
 
 ## Contributing
 

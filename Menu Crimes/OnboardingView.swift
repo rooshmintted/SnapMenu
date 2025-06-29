@@ -2,7 +2,10 @@
 //  OnboardingView.swift
 //  Menu Crimes
 //
-//  Onboarding screens for AskMrMenu: Clean, modern illustrations showing key features
+//  Redesigned onboarding screens that clearly explain Menu Crimes' unique value propositions:
+//  1. AI-powered menu analysis with profit margin detection
+//  2. Premium AI search for restaurant discovery 
+//  3. Social sharing and friend features
 //
 
 import SwiftUI
@@ -45,22 +48,25 @@ struct OnboardingView: View {
     
     private let onboardingData: [OnboardingPage] = [
         OnboardingPage(
-            title: "Scan Menus with Ease",
-            subtitle: "Capture any restaurant menu and let our AI extract every detail",
-            imageName: "scan_menu_illustration", // You'll need to add this image asset
-            color: .orange
+            title: "Discover Menu Secrets",
+            subtitle: "AI analyzes profit margins, ingredients, and hidden costs in every dish. See which items make restaurants the most money!",
+            imageName: "menu_analysis",
+            color: .orange,
+            features: ["Profit margin analysis", "Cost breakdowns", "Interactive annotations"]
         ),
         OnboardingPage(
-            title: "Ask Smart Questions",
-            subtitle: "Get instant answers about dishes, prices, and restaurant insights",
-            imageName: "ask_questions_illustration", // You'll need to add this image asset
-            color: .red
+            title: "Ask Anything About Food",
+            subtitle: "\"Which restaurants write menus like poetry?\" Our AI searches every menu in your city to find perfect answers.",
+            imageName: "ai_search",
+            color: .blue,
+            features: ["Natural language search", "Menu AI intelligence", "Contextual understanding"]
         ),
         OnboardingPage(
-            title: "Get Deep Insights",
-            subtitle: "Discover dish margins, ingredients, and cost breakdowns with AI analysis",
-            imageName: "deep_insights_illustration", // You'll need to add this image asset
-            color: .blue
+            title: "Build Your Food Intelligence",
+            subtitle: "Every menu you upload makes our AI smarter. Track your contributions and watch your impact grow across the entire search system.",
+            imageName: "profile_intelligence",
+            color: .purple,
+            features: ["Upload tracking & stats", "RAG database contributions", "Personalized achievements"]
         )
     ]
     
@@ -141,34 +147,360 @@ struct OnboardingPageView: View {
     let page: OnboardingPage
     
     var body: some View {
-        VStack(spacing: 40) {
-            Spacer()
+        VStack(spacing: 0) {
+            Spacer(minLength: 20)
             
-            // Illustration Placeholder
-            // TODO: Replace with actual custom illustrations
-            IllustrationPlaceholder(
-                title: page.title,
-                color: page.color
-            )
+            // Enhanced Illustration with context
+            EnhancedIllustrationView(page: page)
             
-            // Text Content
-            VStack(spacing: 16) {
+            Spacer(minLength: 30)
+            
+            // Content Section
+            VStack(spacing: 20) {
                 Text(page.title)
-                    .font(.title)
+                    .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
                 
                 Text(page.subtitle)
-                    .font(.body)
-                    .multilineTextAlignment(.center)
+                    .font(.title3)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal, 40)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(4)
+                    .padding(.horizontal, 30)
+                
+                // Feature bullets
+                FeatureBulletsView(features: page.features, color: page.color)
             }
             
-            Spacer()
+            Spacer(minLength: 20)
         }
         .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Enhanced Illustration Views
+struct EnhancedIllustrationView: View {
+    let page: OnboardingPage
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Main illustration based on page content
+            Group {
+                if page.title.contains("Menu Secrets") {
+                    MenuAnalysisIllustration()
+                } else if page.title.contains("Ask Anything") {
+                    AISearchIllustration()
+                } else {
+                    ProfileIntelligenceIllustration()
+                }
+            }
+            .frame(height: 220)
+        }
+    }
+}
+
+// MARK: - Feature Bullets Component
+struct FeatureBulletsView: View {
+    let features: [String]
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(features, id: \.self) { feature in
+                HStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(color)
+                    
+                    Text(feature)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+            }
+        }
+        .padding(.horizontal, 40)
+        .padding(.top, 8)
+    }
+}
+
+// MARK: - New Enhanced Illustrations
+
+// Menu Analysis Illustration showing profit margin detection
+struct MenuAnalysisIllustration: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            // Mock menu image with annotations
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemGray6))
+                    .frame(width: 260, height: 140)
+                
+                VStack(spacing: 8) {
+                    // Mock menu items with profit badges
+                    HStack(spacing: 12) {
+                        MenuItemWithBadge(name: "Truffle Pasta", price: "$28", margin: 85, badgeColor: .green)
+                        MenuItemWithBadge(name: "Wagyu Steak", price: "$65", margin: 45, badgeColor: .orange)
+                    }
+                    
+                    HStack(spacing: 12) {
+                        MenuItemWithBadge(name: "Caesar Salad", price: "$18", margin: 92, badgeColor: .green)
+                        MenuItemWithBadge(name: "Soup du Jour", price: "$12", margin: 78, badgeColor: .green)
+                    }
+                }
+            }
+            
+            // Analysis summary
+            HStack(spacing: 20) {
+                AnalysisStat(title: "Avg Margin", value: "75%", color: .green)
+                AnalysisStat(title: "Best Deal", value: "Caesar", color: .blue)
+                AnalysisStat(title: "Most Profit", value: "Pasta", color: .orange)
+            }
+        }
+    }
+}
+
+// AI Search Illustration showing intelligent queries
+struct AISearchIllustration: View {
+    @State private var currentQuestionIndex = 0
+    
+    private let questions = [
+        "Which restaurants write menus like poetry?",
+        "Find me food that feels like a hug?",
+        "Where can I eat something rebellious?"
+    ]
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Search interface mockup
+            VStack(spacing: 12) {
+                // Search bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.blue)
+                    
+                    Text(questions[currentQuestionIndex])
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                        .animation(.easeInOut, value: currentQuestionIndex)
+                    
+                    Spacer()
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                .frame(width: 280)
+                
+                // AI response preview
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(.blue)
+                        Text("Menu AI")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+                    
+                    Text("Found 3 restaurants with poetic menu descriptions...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.leading)
+                    
+                    // Source cards
+                    HStack(spacing: 6) {
+                        ForEach(1...3, id: \.self) { index in
+                            HStack {
+                                Text("\(index)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .frame(width: 14, height: 14)
+                                    .background(Circle().fill(Color.blue))
+                                
+                                Text("Restaurant")
+                                    .font(.caption2)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color(.systemGray6)))
+                        }
+                    }
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground)))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color(.systemGray4), lineWidth: 0.5)
+                )
+            }
+        }
+        .onAppear {
+            // Rotate questions every 2.5 seconds
+            Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    currentQuestionIndex = (currentQuestionIndex + 1) % questions.count
+                }
+            }
+        }
+    }
+}
+
+// Social Sharing Illustration showing friend connections
+struct ProfileIntelligenceIllustration: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            // Profile stats mockup
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.purple)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("@foodiedetective")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        Text("Menu Detective")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                    }
+                    Spacer()
+                }
+                
+                // Stats grid
+                HStack(spacing: 16) {
+                    ProfileStatCard(title: "Menus\nUploaded", value: "47", color: .blue)
+                    ProfileStatCard(title: "RAG\nContributions", value: "1.2K", color: .green)
+                }
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+            .frame(width: 280)
+            
+            // RAG impact visualization
+            VStack(spacing: 8) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.purple)
+                    Text("Your Impact on AI Search")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                }
+                
+                HStack(spacing: 8) {
+                    Text("Search Quality:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    // Progress bar showing contribution impact
+                    ProgressView(value: 0.75)
+                        .tint(.purple)
+                        .frame(width: 100)
+                    
+                    Text("Enhanced")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.purple)
+                }
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground)))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+}
+
+// MARK: - Supporting Components
+struct MenuItemWithBadge: View {
+    let name: String
+    let price: String
+    let margin: Int
+    let badgeColor: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    
+                    Text(price)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Profit margin badge
+                Text("\(margin)%")
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(RoundedRectangle(cornerRadius: 4).fill(badgeColor))
+            }
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 6).fill(Color(.systemBackground)))
+        .frame(width: 110)
+    }
+}
+
+struct AnalysisStat: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+struct ProfileStatCard: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(color.opacity(0.1))
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        }
     }
 }
 
@@ -204,6 +536,7 @@ struct OnboardingPage {
     let subtitle: String
     let imageName: String
     let color: Color
+    let features: [String]
 }
 
 

@@ -10,6 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     let authManager: AuthManager
     @State private var showingSignOutAlert = false
+    @State private var showingOnboarding = false // Added for help button functionality
     
     // Mock data for gamification - will be pulled from Supabase later
     @State private var menusSubmitted = 27
@@ -32,9 +33,10 @@ struct ProfileView: View {
                     
                     Spacer()
                     
-                    // Help button
+                    // Help button - shows onboarding when tapped
                     Button {
-                        print("Help button tapped") // Debug log
+                        print("Help button tapped - showing onboarding") // Debug log
+                        showingOnboarding = true
                     } label: {
                         Image(systemName: "questionmark.circle")
                             .font(.title2)
@@ -178,6 +180,13 @@ struct ProfileView: View {
             }
         } message: {
             Text("Are you sure you want to sign out?")
+        }
+        .sheet(isPresented: $showingOnboarding) {
+            // Present onboarding view when help button is tapped
+            OnboardingView {
+                // Close onboarding sheet when completed
+                showingOnboarding = false
+            }
         }
     }
 }
