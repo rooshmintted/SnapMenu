@@ -20,6 +20,9 @@ final class MenuAnalysisManager {
     // MARK: - Menu Embedding Integration
     var embeddingManager: MenuEmbeddingManager?
     
+    // MARK: - Stats Tracking
+    var statsManager: StatsManager?
+    
     init() {
         print("🔍 MenuAnalysisManager: Initialized")
         self.embeddingManager = MenuEmbeddingManager()
@@ -43,6 +46,18 @@ final class MenuAnalysisManager {
             print("🔍 MenuAnalysisManager: Response data: \(response)")
             
             analysisState = .completed(response)
+            
+            // Record statistics for successful analysis
+            if let statsManager = statsManager {
+                let dishCount = response.analysis.dishes.count
+                Task {
+                    await statsManager.recordMenuAnalysis(
+                        dishCount: dishCount,
+                        userID: currentUser.id.uuidString
+                    )
+                    print("📊 MenuAnalysisManager: Stats recorded - \(dishCount) dishes analyzed")
+                }
+            }
             
             // Now start embedding process using the analysis response
             // This runs after analysis completes, using structured dish data

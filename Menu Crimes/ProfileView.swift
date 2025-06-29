@@ -9,12 +9,9 @@ import SwiftUI
 
 struct ProfileView: View {
     let authManager: AuthManager
+    let statsManager: StatsManager
     @State private var showingSignOutAlert = false
     @State private var showingOnboarding = false // Added for help button functionality
-    
-    // Mock data for gamification - will be pulled from Supabase later
-    @State private var menusSubmitted = 27
-    @State private var dishesAnalyzed = 143
     
     var body: some View {
         ScrollView {
@@ -75,7 +72,7 @@ struct ProfileView: View {
                         // Menus Submitted
                         StatsCard(
                             title: "Menus\nSubmitted",
-                            value: "\(menusSubmitted)",
+                            value: "\(statsManager.menusSubmitted)",
                             icon: "camera.fill",
                             color: .blue,
                             description: "Photos uploaded"
@@ -84,7 +81,7 @@ struct ProfileView: View {
                         // Dishes Analyzed
                         StatsCard(
                             title: "Dishes\nAnalyzed",
-                            value: "\(dishesAnalyzed)",
+                            value: "\(statsManager.dishesAnalyzed)",
                             icon: "fork.knife",
                             color: .green,
                             description: "Items reviewed"
@@ -93,19 +90,21 @@ struct ProfileView: View {
                     
                     // Progress to next milestone
                     VStack(alignment: .leading, spacing: 12) {
+                        let milestone = statsManager.getMilestoneProgress()
+                        
                         HStack {
                             Text("Next Milestone")
                                 .font(.headline)
                             Spacer()
-                            Text("\(menusSubmitted)/50")
+                            Text("\(milestone.current)/\(milestone.target)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         
-                        ProgressView(value: Double(menusSubmitted), total: 50.0)
-                            .tint(.orange)
+                        ProgressView(value: milestone.progress)
+                            .progressViewStyle(LinearProgressViewStyle(tint: .orange))
                         
-                        Text("🏆 Upload 50 menus to earn 'Master Analyst' badge")
+                        Text("\(milestone.target - milestone.current) more menus to unlock the next milestone")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -122,25 +121,34 @@ struct ProfileView: View {
                             .padding(.horizontal, 24)
                         
                         VStack(spacing: 12) {
+                            let achievements = statsManager.getAchievementStatus()
+                            
                             AchievementRow(
                                 icon: "camera.badge.ellipsis",
                                 title: "First Menu",
                                 description: "Uploaded your first menu photo",
-                                isUnlocked: true
+                                isUnlocked: achievements["first_menu"] ?? false
                             )
                             
                             AchievementRow(
-                                icon: "10.circle.fill",
-                                title: "Getting Started",
-                                description: "Analyzed 10 menu items",
-                                isUnlocked: true
+                                icon: "magnifyingglass.circle",
+                                title: "Menu Explorer",
+                                description: "Analyzed 10 menus",
+                                isUnlocked: achievements["menu_explorer"] ?? false
+                            )
+                            
+                            AchievementRow(
+                                icon: "fork.knife.circle",
+                                title: "Dish Detective",
+                                description: "Analyzed 50 dishes",
+                                isUnlocked: achievements["dish_detective"] ?? false
                             )
                             
                             AchievementRow(
                                 icon: "star.circle",
-                                title: "Menu Expert",
-                                description: "Submit 100 menus",
-                                isUnlocked: false
+                                title: "Menu Master",
+                                description: "Submit 25 menus",
+                                isUnlocked: achievements["menu_master"] ?? false
                             )
                         }
                         .padding(.horizontal, 24)
@@ -297,5 +305,8 @@ struct HelpButton: View {
 }
 
 #Preview {
-    ProfileView(authManager: AuthManager())
+    ProfileView(
+        authManager: AuthManager(),
+        statsManager: StatsManager(viewContext: PersistenceController.preview.container.viewContext)
+    )
 }

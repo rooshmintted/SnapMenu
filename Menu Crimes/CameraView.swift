@@ -133,20 +133,20 @@ struct CameraView: View {
                     }
                 }
             }
-            .navigationTitle("Camera")
+            .navigationTitle("Take a Photo of a Menu")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        print("📸 CameraView: Gallery button tapped")
-                        showingGalleryPicker = true
-                    }) {
-                        Image(systemName: "photo.on.rectangle")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    }
-                }
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Button(action: {
+//                        print("📸 CameraView: Gallery button tapped")
+//                        showingGalleryPicker = true
+//                    }) {
+//                        Image(systemName: "photo.on.rectangle")
+//                            .font(.title2)
+//                            .foregroundColor(.white)
+//                    }
+//                }
+//            }
             .sheet(isPresented: $showingGalleryPicker) {
                 GalleryPickerView(galleryManager: galleryManager)
             }

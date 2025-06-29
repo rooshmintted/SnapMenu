@@ -19,6 +19,9 @@ struct ContentView: View {
     let menuAnnotationManager = MenuAnnotationManager()
     let onboardingManager = OnboardingManager()
     
+    // Stats manager for tracking menu analysis statistics
+    @State private var statsManager: StatsManager?
+    
     var body: some View {
         Group {
             // Check onboarding first - show onboarding before authentication if not completed
@@ -35,20 +38,40 @@ struct ContentView: View {
                 case .unauthenticated, .error:
                     AuthContainerView(authManager: authManager)
                 case .authenticated:
-                    AuthenticatedMainView(
-                        authManager: authManager,
-                        cameraManager: cameraManager,
-                        galleryManager: galleryManager,
-                        menuAnalysisManager: menuAnalysisManager,
-                        menuAnnotationManager: menuAnnotationManager
-                    )
+                    if let statsManager = statsManager {
+                        AuthenticatedMainView(
+                            authManager: authManager,
+                            cameraManager: cameraManager,
+                            galleryManager: galleryManager,
+                            menuAnalysisManager: menuAnalysisManager,
+                            menuAnnotationManager: menuAnnotationManager,
+                            statsManager: statsManager
+                        )
+                    } else {
+                        LoadingView()
+                    }
                 }
             }
         }
         .onAppear {
             print("ContentView: App launched, checking authentication state")
             print("🎯 ContentView: Onboarding completed: \(onboardingManager.hasCompletedOnboarding)")
-            print("🔍 ContentView: Auth state: \(authManager.authState)")
+            
+            // Initialize StatsManager
+            if statsManager == nil {
+                statsManager = StatsManager(viewContext: viewContext)
+                print("📊 ContentView: StatsManager initialized")
+            }
+            
+            Task {
+                await authManager.checkAuthState()
+                
+                // Load user stats when authenticated
+                if case .authenticated = authManager.authState,
+                   let userID = authManager.authState.currentUser?.id {
+                    await statsManager?.loadUserStats(for: userID.uuidString)
+                }
+            }
         }
     }
 }
@@ -60,6 +83,7 @@ struct AuthenticatedMainView: View {
     let galleryManager: PhotoGalleryManager
     let menuAnalysisManager: MenuAnalysisManager
     let menuAnnotationManager: MenuAnnotationManager
+    let statsManager: StatsManager
     
     @State private var selectedTab = 0 // 0: Camera, 1: Search, 2: Profile
     
@@ -89,7 +113,7 @@ struct AuthenticatedMainView: View {
                     .tag(1)
                 
                 // Profile Tab
-                ProfileView(authManager: authManager)
+                ProfileView(authManager: authManager, statsManager: statsManager)
                     .tabItem {
                         Image(systemName: selectedTab == 2 ? "person.fill" : "person")
                         Text("Profile")
@@ -111,6 +135,10 @@ struct AuthenticatedMainView: View {
             print("AuthenticatedMainView: User authenticated, showing main interface")
             // Set default tab to camera for camera-first experience
             selectedTab = 0
+            
+            // Connect StatsManager to MenuAnalysisManager for stats tracking
+            menuAnalysisManager.statsManager = statsManager
+            print("📊 AuthenticatedMainView: Connected StatsManager to MenuAnalysisManager")
             
             // Configure tab bar appearance for better visibility
             configureTabBarAppearance()

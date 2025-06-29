@@ -9,12 +9,15 @@ import SwiftUI
 
 @main
 struct Menu_CrimesApp: App {
+    // Core Data persistence controller
+    let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-                    print("🍽️ Menu_CrimesApp: App launched")
+                    print("🍽️ Menu_CrimesApp: App launched with Core Data")
                 }
         }
     }
