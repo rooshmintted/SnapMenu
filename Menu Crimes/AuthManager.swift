@@ -96,11 +96,14 @@ final class AuthManager {
             
             print("✅ AuthManager: Username is available")
             
-            // Create auth user
+            // Create auth user with additional metadata to help with profile creation
             print("🔐 AuthManager: Creating auth user...")
             let authResponse = try await supabase.auth.signUp(
                 email: email,
-                password: password
+                password: password,
+                data: [
+                    "username": .string(username)
+                ]
             )
             
             let user = authResponse.user
@@ -113,23 +116,25 @@ final class AuthManager {
                 return
             }
             
-            // Create user profile
-            print("🔐 AuthManager: Creating user profile...")
-            let profile = UserProfile(
-                id: user.id,
-                username: username,
-                avatarUrl: nil,
-                website: nil,
-                updatedAt: Date()
-            )
+            // Wait a moment for any auto-profile creation to complete
+            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
             
+            // Update the auto-created profile with our username data
+            print("🔐 AuthManager: Updating profile with username...")
             try await supabase
                 .from("profiles")
-                .insert(profile)
+                .update([
+                    "username": username,
+                    "display_name": username,
+                    "updated_at": ISO8601DateFormatter().string(from: Date())
+                ])
+                .eq("id", value: user.id)
                 .execute()
             
-            print("✅ AuthManager: User profile created successfully")
-            await setAuthState(.authenticated(profile))
+            print("✅ AuthManager: Profile updated successfully")
+            
+            // Fetch the updated profile
+            await fetchUserProfile(userId: user.id)
             
         } catch {
             print("❌ AuthManager: Sign up error: \(error)")
